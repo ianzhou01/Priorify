@@ -1,0 +1,22 @@
+node_modules/
+
+dist/
+build/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+*.log
+
+.vscode/
+.idea/
+
+.env
+
+# pkg manager locks
+npm-debug.log*
+yarn-error.log*
+
+# for packaging
+*.zip
