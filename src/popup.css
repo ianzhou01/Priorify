@@ -10,6 +10,26 @@ body {
   text-align: center;
 }
 
+#tasksContainer {
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  margin-top: 10px;
+  height: 300px;
+  width: 100%;
+  overflow-y: auto;
+  border-radius: 5px;
+  background: #00D4FF;
+  background: linear-gradient(180deg, rgba(0, 212, 255, 0.6) 15%, rgba(15, 15, 191, 0.6) 70%, rgba(4, 4, 128, 0.6) 100%);
+}
+
+#inProgress {
+  text-align: center;
+}
+
+#completed {
+  text-align: center;
+}
+
 button {
   padding: 8px 16px;
   background-color: #007bff;
