@@ -1,7 +1,12 @@
 document.addEventListener('DOMContentLoaded', function() {
-  const button = document.getElementById('testButton');
+  const aBtn = document.getElementById('addBtn');
+  const pBtn = document.getElementById('prioritizeBtn');
   
-  button.addEventListener('click', function() {
-    alert("Welcome to Priorify!");
+  aBtn.addEventListener('click', function() {
+    alert("Add a task");
+  });
+
+  pBtn.addEventListener('click', function() {
+    alert("Prioritize the Tasks")
   });
 });
