@@ -1,5 +1,6 @@
 body {
-  width: 300px;
+  width: 350px;
+  height: 500px;
   font-family: Arial, sans-serif;
   padding: 15px;
   margin: 0;
@@ -31,12 +32,44 @@ body {
 }
 
 button {
-  padding: 8px 16px;
+  display: flex;
+  width: 100%;
+  gap: 10px;
+  padding: 14px 16px;
+  margin-top: 20px;
   background-color: #007bff;
   color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Forces the row to stretch edge-to-edge with a gap */
+.button-row {
+  display: flex;
+  width: 100%; 
+  gap: 3px;
+  margin-top: 10px;
+}
+
+.non-action {
+    flex: 7;
+}
+
+.action-col {
+  flex: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.underBtn {
+  margin-top: 2px;   /* Adds breathing room between the buttons and the text */
+  font-size: 12px;    /* Makes it slightly smaller than standard text */
+  color: #666666;     /* Gives it a subtle gray color */
+  font-style: italic; /* Optional: adds a nice stylistic touch */
 }
 
 button:hover {

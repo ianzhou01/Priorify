@@ -7,11 +7,18 @@
   </head>
   <body>
     <div class="container">
-      <h1>Priorify</h1>
-      <p>Your tasks, sorted.</p>
-      <button id="addBtn">Add</button>
-      <button id="prioritizeBtn">Prioritize</button>
+        <h1>Priorify</h1>
+      <div class="button-row">
+        <div class ="non-action">
+          <button id="addBtn">Add</button>
+        </div>
+      <div class="action-col">
+        <button id="prioritizeBtn">Prioritize</button>
+        <p id="prioritizeHTML" class="underBtn">Choose your own algorithm</p>
+        </div>
+      </div>
     </div>
+
 
     <div id="tasksContainer">
       <!-- Tasks will be dynamically inserted here -->
