@@ -40,22 +40,51 @@ class Task {
   }
 }
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
+
+  // popup.html logic
   const aBtn = document.getElementById('addBtn');
   const pBtn = document.getElementById('prioritizeBtn');
-  
-  if (aBtn) { // here
-  aBtn.addEventListener('click', function() {
-    alert("Add a task");
-  });
+
+  if (aBtn) {
+    aBtn.addEventListener('click', function () {
+      window.location.href = 'taskform.html';
+    });
   }
 
-  if (pBtn) { // here
-  pBtn.addEventListener('click', function() {
-    alert("Prioritize the Tasks")
-  });
+  if (pBtn) {
+    pBtn.addEventListener('click', function () {
+      alert("Prioritize the Tasks");
+    });
   }
 
+  // taskform.html logic
+  const taskForm = document.getElementById('taskForm');
+  const cancelBtn = document.getElementById('cancelBtn');
+
+  if (taskForm) {
+    taskForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      const task = {
+        name: document.getElementById('taskName').value,
+        dueDate: document.getElementById('dueDate').value,
+        priority: document.getElementById('priority').value,
+        timeCommitment: document.getElementById('timeCommitment').value,
+      };
+
+      const tasks = JSON.parse(localStorage.getItem('priorify_tasks') || '[]');
+      tasks.push(task);
+      localStorage.setItem('priorify_tasks', JSON.stringify(tasks));
+
+      window.location.href = 'popup.html';
+    });
+  }
+
+  if (cancelBtn) {
+    cancelBtn.addEventListener('click', function () {
+      window.location.href = 'popup.html';
+    });
+  }
 
 });
-
