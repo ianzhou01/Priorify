@@ -75,3 +75,8 @@ button {
 button:hover {
   background-color: #0056b3;
 }
+
+.algorithm-display {
+  text-align: center;
+  font-size: 12px;
+}
