@@ -12,5 +12,17 @@
     "service_worker": "src/background.js"
   },
 
-  "permissions": ["storage"]
+  "permissions": [
+    "storage"
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "src/taskcard.html"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ]
 }

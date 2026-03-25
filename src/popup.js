@@ -26,11 +26,11 @@ class Task {
   }
 }
 
-// Storage helpers (chrome.storage.local)
+// Storage helpers
 function saveTasks(tasks, callback) {
   chrome.storage.local.set({ priorify_tasks: tasks }, callback);
 }
- 
+
 function loadTasks(callback) {
   chrome.storage.local.get('priorify_tasks', function (result) {
     const raw = result.priorify_tasks || [];
@@ -43,57 +43,81 @@ function loadTasks(callback) {
   });
 }
 
-// Render tasks into In Progress / Completed sections
+// Task Card (fetches template from taskcard.html)
+let cardTemplateCache = null;
+
+function getCardTemplate() {
+  if (cardTemplateCache) return Promise.resolve(cardTemplateCache);
+  return fetch(chrome.runtime.getURL('src/taskcard.html'))
+    .then(res => res.text())
+    .then(html => {
+      cardTemplateCache = html;
+      return html;
+    });
+}
+
+// Build a task card element from a Task object
+function buildTaskCard(task, isCompleted) {
+  const difficultyEmoji = { Hard: '🔴', Medium: '🟡', Easy: '🟢' }[task.difficulty] || '';
+  const timeLabel = { '15': '15 min', '30': '30 min', '60': '1 hr', '120': '2 hrs', '240': '4+ hrs' }[task.time] || `${task.time} min`;
+
+  return getCardTemplate().then(html => {
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = html;
+    const card = wrapper.firstElementChild;
+
+    card.querySelector('.task-title').textContent = task.title;
+    card.querySelector('.task-meta').innerHTML = `📅 ${task.date} &nbsp;|&nbsp; ⏱ ${timeLabel} &nbsp;|&nbsp; ${difficultyEmoji} ${task.difficulty}`;
+    card.querySelector('.mark-btn').textContent = isCompleted ? '↩ Unmark' : '✔ Mark Complete';
+
+    card.querySelector('.mark-btn').addEventListener('click', function () {
+      loadTasks(function (tasks) {
+        const match = tasks.find(t => t.title === task.title && t.status_completed === isCompleted);
+        if (match) {
+          isCompleted ? match.unmark() : match.mark();
+          saveTasks(tasks, renderTasks);
+        }
+      });
+    });
+
+    return card;
+  });
+}
+
+// Render tasks on popup.html
 function renderTasks() {
   loadTasks(function (tasks) {
     const inProgressEl = document.getElementById('inProgress');
     const completedEl = document.getElementById('completed');
- 
+
     if (!inProgressEl || !completedEl) return;
- 
+
     const inProgress = tasks.filter(t => !t.status_completed);
     const completed = tasks.filter(t => t.status_completed);
- 
+
     inProgressEl.innerHTML = '<h2>In Progress</h2>';
     if (inProgress.length === 0) {
       inProgressEl.innerHTML += '<p>Tasks in progress will appear here.</p>';
     } else {
       inProgress.forEach(task => {
-        // TODO: Implement task card building
-        // inProgressEl.innerHTML += buildTaskCard(task, false);
+        buildTaskCard(task, false).then(card => inProgressEl.appendChild(card));
       });
     }
- 
+
     completedEl.innerHTML = '<h2>Completed</h2>';
     if (completed.length === 0) {
       completedEl.innerHTML += '<p>Completed tasks will appear here.</p>';
     } else {
       completed.forEach(task => {
-        // TODO: Implement task card building
-        // completedEl.innerHTML += buildTaskCard(task, true);
+        buildTaskCard(task, true).then(card => completedEl.appendChild(card));
       });
     }
- 
-    // Attach mark/unmark listeners after rendering
-    document.querySelectorAll('.mark-btn').forEach(btn => {
-      btn.addEventListener('click', function () {
-        const targetTitle = this.dataset.title;
-        const isCompleted = this.dataset.completed === 'true';
- 
-        loadTasks(function (tasks) {
-          const task = tasks.find(t => t.title === targetTitle && t.status_completed === isCompleted);
-          if (task) {
-            isCompleted ? task.unmark() : task.mark();
-            saveTasks(tasks, renderTasks);
-          }
-        });
-      });
-    });
   });
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-
+  renderTasks();
+  
   // popup.html logic
   const aBtn = document.getElementById('addBtn');
 
@@ -119,9 +143,12 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('difficulty').value
       );
 
-      const tasks = loadTasks();
-      tasks.push(task);
-      saveTasks(tasks);
+      loadTasks(function (tasks) {
+        tasks.push(task);
+        saveTasks(tasks, function () {
+          window.location.href = 'popup.html'; // only navigates after save completes
+        });
+      });
 
       window.location.href = 'popup.html';
     });

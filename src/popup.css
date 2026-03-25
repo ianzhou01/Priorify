@@ -157,3 +157,36 @@ button:hover {
   text-align: center;
   font-size: 12px;
 }
+
+/* Task Card */
+.task-card {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin: 6px 8px;
+  text-align: left;
+}
+ 
+.task-title {
+  font-weight: bold;
+  color: white;
+  font-size: 13px;
+}
+ 
+.task-meta {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.85);
+  margin-top: 3px;
+}
+ 
+.mark-btn {
+  margin-top: 6px;
+  padding: 3px 8px;
+  font-size: 11px;
+  width: auto;
+  background: rgba(255, 255, 255, 0.25);
+}
+ 
+.mark-btn:hover {
+  background: rgba(255, 255, 255, 0.4);
+}
