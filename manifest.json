@@ -8,7 +8,9 @@
     "default_popup": "src/popup.html"
   },
 
-  "permissions": ["storage",
-    "tabs"
-  ]
+  "background": {
+    "service_worker": "src/background.js"
+  },
+
+  "permissions": ["storage"]
 }

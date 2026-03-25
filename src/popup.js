@@ -7,21 +7,6 @@ let algorithmChoice = Math.floor(Math.random() * 6) + 1;
 
 const algoDisplay = document.getElementById('algoText');
 
-if (currentOrganization === 0) {
-  algoDisplay.textContent = "Unprioritized";
-} else if (currentOrganization === 1) {
-  algoDisplay.textContent = "Earliest Deadline";
-} else if (currentOrganization === 2) {
-  algoDisplay.textContent = "Easiest Difficulty";
-} else if (currentOrganization === 3) {
-  algoDisplay.textContent = "Hardest Difficulty";
-} else if (currentOrganization === 4) {
-  algoDisplay.textContent = "Intermittent Times";
-} else if (currentOrganization === 5) {
-  algoDisplay.textContent = "Random";
-}
-
-// Task class definition
 class Task {
   constructor(_title, _date, _time, _difficulty) {
     this.title = _title;
@@ -110,17 +95,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // popup.html logic
   const aBtn = document.getElementById('addBtn');
-  const pBtn = document.getElementById('prioritizeBtn');
+
 
   if (aBtn) {
     aBtn.addEventListener('click', function () {
       window.location.href = 'taskform.html';
-    });
-  }
-
-  if (pBtn) {
-    pBtn.addEventListener('click', function () {
-      alert("Prioritize the Tasks");
     });
   }
 
