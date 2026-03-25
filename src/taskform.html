@@ -13,22 +13,14 @@
  
     <div id="taskFormContainer">
       <form id="taskForm">
-        <label for="name">Task Name</label>
-        <input type="text" id="name" placeholder="e.g. Finish report" required />
+        <label for="title">Task Name</label>
+        <input type="text" id="title" placeholder="e.g. Finish report" required />
  
-        <label for="dueDate">Due Date</label>
-        <input type="date" id="deadline" required />
- 
-        <label for="priority">Priority Level</label>
-        <select id="priority" required>
-          <option value="" disabled selected>Select priority</option>
-          <option value="high">🔴 High</option>
-          <option value="medium">🟡 Medium</option>
-          <option value="low">🟢 Low</option>
-        </select>
- 
-        <label for="length">Time Commitment</label>
-        <select id="length" required>
+        <label for="date">Due Date</label>
+        <input type="date" id="date" required />
+
+        <label for="time">Time Commitment</label>
+        <select id="time" required>
           <option value="" disabled selected>Estimated time</option>
           <option value="15">15 minutes</option>
           <option value="30">30 minutes</option>
@@ -37,12 +29,21 @@
           <option value="240">4+ hours</option>
         </select>
  
+        <label for="difficulty">Difficulty Level</label>
+        <select id="difficulty" required>
+          <option value="" disabled selected>Select difficulty</option>
+          <option value="Hard">🔴 High</option>
+          <option value="Medium">🟡 Medium</option>
+          <option value="Easy">🟢 Low</option>
+        </select>
+ 
         <div class="form-buttons">
           <button type="submit" id="submitBtn">Add Task</button>
           <button type="button" id="cancelBtn">Cancel</button>
         </div>
       </form>
     </div>
+    
     <script src="popup.js"></script>
   </body>
 </html>
