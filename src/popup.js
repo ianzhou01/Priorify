@@ -1,5 +1,5 @@
 // Since we are going to use only one logic JS script
-// make sure to use if (exists) for buttons and other things so we don't get errors
+// Make sure to use if (exists) for buttons and other things so we don't get errors
 
 // Algorithm choices:
 let currentOrganization = 0;
@@ -7,6 +7,7 @@ let algorithmChoice = Math.floor(Math.random() * 6) + 1;
 
 const algoDisplay = document.getElementById('algoText');
 
+// Task class definition
 class Task {
   constructor(_title, _date, _time, _difficulty) {
     this.title = _title;
@@ -122,7 +123,7 @@ document.addEventListener('DOMContentLoaded', function () {
       tasks.push(task);
       saveTasks(tasks);
 
-      window.location.href = 'src/popup.html';
+      window.location.href = 'popup.html';
     });
   }
 
