@@ -10,3 +10,4 @@ document.addEventListener('DOMContentLoaded', function() {
     alert("Prioritize the Tasks")
   });
 });
+
