@@ -136,115 +136,164 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // popup.html logic
   const aBtn = document.getElementById('addBtn');
-    const pBtn = document.getElementById('prioritizeBtn');
+  const pBtn = document.getElementById('prioritizeBtn');
 
 
-    if (aBtn) {
-      aBtn.addEventListener('click', function () {
-        window.location.href = 'taskform.html';
+  if (aBtn) {
+    aBtn.addEventListener('click', function () {
+      window.location.href = 'taskform.html';
+    });
+  }
+
+  if (pBtn) {
+    pBtn.addEventListener('click', function () {
+      chrome.storage.local.get(['currentOrganization'], function (result) {
+        const org = result.currentOrganization || 0;
+
+        const algoNames = {
+          0: "Unprioritized",
+          1: "Earliest Deadline",
+          2: "Easiest Difficulty",
+          3: "Hardest Difficulty",
+          4: "Fluctuating Times",
+          5: "Randomly Prioritized"
+        };
+
+        if (algoDisplay) {
+          algoDisplay.textContent = algoNames[org];
+        }
+
+        renderTasks();
       });
-    }
+    });
+  }
 
-    if (pBtn) {
-      pBtn.addEventListener('click', function () {
-        chrome.storage.local.get(['currentOrganization'], function (result) {
-          const org = result.currentOrganization || 0;
+  // algo.html logic
+  const a1Btn = document.getElementById('a1Btn');
+  const a2Btn = document.getElementById('a2Btn');
+  const a3Btn = document.getElementById('a3Btn');
+  const a4Btn = document.getElementById('a4Btn');
+  const a5Btn = document.getElementById('a5Btn');
+  const a6Btn = document.getElementById('a6Btn');
 
-          const algoNames = {
-            0: "Unprioritized",
-            1: "Earliest Deadline",
-            2: "Easiest Difficulty",
-            3: "Hardest Difficulty",
-            4: "Fluctuating Times",
-            5: "Randomly Prioritized"
-          };
+  if (a1Btn) {
+    a1Btn.addEventListener('click', function () {
+      chrome.storage.local.set({ currentOrganization: 1 });
+      window.location.href = 'popup.html';
+    });
+  }
 
-          if (algoDisplay) {
-            algoDisplay.textContent = algoNames[org];
-          }
+  if (a2Btn) {
+    a2Btn.addEventListener('click', function () {
+      chrome.storage.local.set({ currentOrganization: 2 });
+      window.location.href = 'popup.html';
+    });
+  }
+
+  if (a3Btn) {
+    a3Btn.addEventListener('click', function () {
+      chrome.storage.local.set({ currentOrganization: 3 });
+      window.location.href = 'popup.html';
+    });
+  }
+
+  if (a4Btn) {
+    a4Btn.addEventListener('click', function () {
+      chrome.storage.local.set({ currentOrganization: 4 });
+      window.location.href = 'popup.html';
+    });
+  }
+
+  if (a5Btn) {
+    a5Btn.addEventListener('click', function () {
+      chrome.storage.local.set({ currentOrganization: 5 });
+      window.location.href = 'popup.html';
+    });
+  }
+
+  if (a6Btn) {
+    a6Btn.addEventListener('click', function () {
+      chrome.storage.local.set({ currentOrganization: Math.floor(Math.random() * 6) + 1 });
+      window.location.href = 'popup.html';
+    });
+  }
+
+  // taskform.html logic
+  const taskForm = document.getElementById('taskForm');
+  const cancelBtn = document.getElementById('cancelBtn');
+
+  if (taskForm) {
+    taskForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      const task = new Task(
+        document.getElementById('title').value,
+        document.getElementById('date').value,
+        document.getElementById('time').value,
+        document.getElementById('difficulty').value
+      );
+
+      loadTasks(function (tasks) {
+        tasks.push(task);
+        saveTasks(tasks, function () {
+          window.location.href = 'popup.html'; // only navigates after save completes
         });
       });
-    }
 
-    // algo.html logic
-    const a1Btn = document.getElementById('a1Btn');
-    const a2Btn = document.getElementById('a2Btn');
-    const a3Btn = document.getElementById('a3Btn');
-    const a4Btn = document.getElementById('a4Btn');
-    const a5Btn = document.getElementById('a5Btn');
-    const a6Btn = document.getElementById('a6Btn');
+      window.location.href = 'popup.html';
+    });
+  }
 
-    if (a1Btn) {
-      a1Btn.addEventListener('click', function () {
-        chrome.storage.local.set({ currentOrganization: 1 });
-        window.location.href = 'popup.html';
-      });
-    }
+  if (cancelBtn) {
+    cancelBtn.addEventListener('click', function () {
+      window.location.href = 'popup.html';
+    });
+  }
+});
 
-    if (a2Btn) {
-      a2Btn.addEventListener('click', function () {
-        chrome.storage.local.set({ currentOrganization: 2 });
-        window.location.href = 'popup.html';
-      });
-    }
-
-    if (a3Btn) {
-      a3Btn.addEventListener('click', function () {
-        chrome.storage.local.set({ currentOrganization: 3 });
-        window.location.href = 'popup.html';
-      });
-    }
-
-    if (a4Btn) {
-      a4Btn.addEventListener('click', function () {
-        chrome.storage.local.set({ currentOrganization: 4 });
-        window.location.href = 'popup.html';
-      });
-    }
-
-    if (a5Btn) {
-      a5Btn.addEventListener('click', function () {
-        chrome.storage.local.set({ currentOrganization: 5 });
-        window.location.href = 'popup.html';
-      });
-    }
-
-    if (a6Btn) {
-      a6Btn.addEventListener('click', function () {
-        chrome.storage.local.set({ currentOrganization: Math.floor(Math.random() * 6) + 1 });
-        window.location.href = 'popup.html';
-      });
-    }
-
-    // taskform.html logic
-    const taskForm = document.getElementById('taskForm');
-    const cancelBtn = document.getElementById('cancelBtn');
-
-    if (taskForm) {
-      taskForm.addEventListener('submit', function (e) {
-        e.preventDefault();
-
-        const task = new Task(
-          document.getElementById('title').value,
-          document.getElementById('date').value,
-          document.getElementById('time').value,
-          document.getElementById('difficulty').value
-        );
-
-        loadTasks(function (tasks) {
-          tasks.push(task);
-          saveTasks(tasks, function () {
-            window.location.href = 'popup.html'; // only navigates after save completes
-          });
-        });
-
-        window.location.href = 'popup.html';
-      });
-    }
-
-    if (cancelBtn) {
-      cancelBtn.addEventListener('click', function () {
-        window.location.href = 'popup.html';
-      });
-    }
+function sortByDate(tasks, callback) {
+  return tasks.sort((a, b) => {
+    const dateA = new Date(a.date);
+    const dateB = new Date(b.date);
+    return dateA - dateB;
   });
+
+  saveTasks(tasks, callback);
+}
+
+function sortByDifficulty(tasks, callback) {
+  const difficultyOrder = { 'Easy': 1, 'Medium': 2, 'Hard': 3 };
+  return tasks.sort((a, b) => difficultyOrder[a.difficulty] - difficultyOrder[b.difficulty]);
+
+  saveTasks(tasks, callback);
+}
+
+function sortByInverseDifficulty(tasks, callback) {
+  const difficultyOrder = { 'Easy': 1, 'Medium': 2, 'Hard': 3 };
+  return tasks.sort((a, b) => difficultyOrder[b.difficulty] - difficultyOrder[a.difficulty]);
+
+  saveTasks(tasks, callback);
+}
+
+function sortByTime(tasks, callback) {
+  const timeOrder = { '15': 1, '30': 2, '60': 3, '120': 4, '240': 5 };
+  return tasks.sort((a, b) => timeOrder[a.time] - timeOrder[b.time]);
+
+  saveTasks(tasks, callback);
+}
+
+function sortByFluctuatingTimes(tasks, callback) {
+  while (tasks.length > 0) {
+    result.push(tasks.shift());
+    if (sortedArray.length > 0) {
+      result.push(tasks.pop());
+    }
+  }
+  saveTasks(result, callback); //saving the new order of tasks now instead of the tasks instance
+}
+
+function sortByRandom(tasks, callback) {
+  return tasks.sort(() => Math.random() - 0.5);
+
+  saveTasks(tasks, callback);
+}
