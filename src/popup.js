@@ -111,25 +111,57 @@ function renderTasks() {
   });
 }
 
+function applySorting(org) {
+  const algoNames = {
+    0: "Unprioritized",
+    1: "Earliest Deadline",
+    2: "Easiest Difficulty",
+    3: "Hardest Difficulty",
+    4: "Fluctuating Times",
+    5: "Randomly Prioritized"
+  };
+
+  if (algoDisplay) {
+    algoDisplay.textContent = algoNames[org] || "Unprioritized";
+  }
+
+  switch (org) {
+    case 1: loadTasks(tasks => sortByDate(tasks, renderTasks)); break;
+    case 2: loadTasks(tasks => sortByDifficulty(tasks, renderTasks)); break;
+    case 3: loadTasks(tasks => sortByInverseDifficulty(tasks, renderTasks)); break;
+    case 4: loadTasks(tasks => sortByFluctuatingTimes(tasks, renderTasks)); break;
+    case 5: loadTasks(tasks => sortByRandom(tasks, renderTasks)); break;
+    default: renderTasks(); break;
+  }
+}
+
 document.addEventListener('DOMContentLoaded', function () {
   renderTasks();
 
   if (window.location.pathname.includes('popup.html')) {
+    // chrome.storage.local.get(['currentOrganization'], function (result) {
+    //   const org = result.currentOrganization || 0;
+
+    //   const algoNames = {
+    //     0: "Unprioritized",
+    //     1: "Earliest Deadline",
+    //     2: "Easiest Difficulty",
+    //     3: "Hardest Difficulty",
+    //     4: "Fluctuating Times",
+    //     5: "Randomly Prioritized"
+    //   };
+
+    //   if (algoDisplay) {
+    //     algoDisplay.textContent = algoNames[org];
+    //   };
+    // });
     chrome.storage.local.get(['currentOrganization'], function (result) {
       const org = result.currentOrganization || 0;
-
-      const algoNames = {
-        0: "Unprioritized",
-        1: "Earliest Deadline",
-        2: "Easiest Difficulty",
-        3: "Hardest Difficulty",
-        4: "Fluctuating Times",
-        5: "Randomly Prioritized"
-      };
-
-      if (algoDisplay) {
-        algoDisplay.textContent = algoNames[org];
-      };
+      if (org > 0) {
+        applySorting(org);
+      } else {
+        renderTasks();
+      }
     });
   }
 
@@ -187,7 +219,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             loadTasks(tasks => sortByRandom(tasks, renderTasks));
             break;
-          }
+        }
       });
     });
   }
