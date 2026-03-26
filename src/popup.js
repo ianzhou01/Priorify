@@ -147,23 +147,47 @@ document.addEventListener('DOMContentLoaded', function () {
 
   if (pBtn) {
     pBtn.addEventListener('click', function () {
-      chrome.storage.local.get(['currentOrganization'], function (result) {
-        const org = result.currentOrganization || 0;
+      chrome.storage.local.get(['algorithmChoice'], function (result) {
+        chrome.storage.local.set({ currentOrganization: result.algorithmChoice || 0 });
 
-        const algoNames = {
-          0: "Unprioritized",
-          1: "Earliest Deadline",
-          2: "Easiest Difficulty",
-          3: "Hardest Difficulty",
-          4: "Fluctuating Times",
-          5: "Randomly Prioritized"
-        };
-
-        if (algoDisplay) {
-          algoDisplay.textContent = algoNames[org];
-        }
-
-        renderTasks();
+        switch (result.algorithmChoice) {
+          case 0:
+            if (algoDisplay) {
+              algoDisplay.textContent = "Unprioritized";
+            }
+            renderTasks();
+            break;
+          case 1:
+            if (algoDisplay) {
+              algoDisplay.textContent = "Earliest Deadline";
+            }
+            loadTasks(tasks => sortByDate(tasks, renderTasks));
+            break;
+          case 2:
+            if (algoDisplay) {
+              algoDisplay.textContent = "Easiest Difficulty";
+            }
+            loadTasks(tasks => sortByDifficulty(tasks, renderTasks));
+            break;
+          case 3:
+            if (algoDisplay) {
+              algoDisplay.textContent = "Hardest Difficulty";
+            }
+            loadTasks(tasks => sortByInverseDifficulty(tasks, renderTasks));
+            break;
+          case 4:
+            if (algoDisplay) {
+              algoDisplay.textContent = "Fluctuating Times";
+            }
+            loadTasks(tasks => sortByFluctuatingTimes(tasks, renderTasks));
+            break;
+          case 5:
+            if (algoDisplay) {
+              algoDisplay.textContent = "Randomly Prioritized";
+            }
+            loadTasks(tasks => sortByRandom(tasks, renderTasks));
+            break;
+          }
       });
     });
   }
@@ -179,6 +203,7 @@ document.addEventListener('DOMContentLoaded', function () {
   if (a1Btn) {
     a1Btn.addEventListener('click', function () {
       chrome.storage.local.set({ currentOrganization: 1 });
+      chrome.storage.local.set({ algorithmChoice: 1 });
       window.location.href = 'popup.html';
     });
   }
@@ -186,6 +211,7 @@ document.addEventListener('DOMContentLoaded', function () {
   if (a2Btn) {
     a2Btn.addEventListener('click', function () {
       chrome.storage.local.set({ currentOrganization: 2 });
+      chrome.storage.local.set({ algorithmChoice: 2 });
       window.location.href = 'popup.html';
     });
   }
@@ -193,6 +219,7 @@ document.addEventListener('DOMContentLoaded', function () {
   if (a3Btn) {
     a3Btn.addEventListener('click', function () {
       chrome.storage.local.set({ currentOrganization: 3 });
+      chrome.storage.local.set({ algorithmChoice: 3 });
       window.location.href = 'popup.html';
     });
   }
@@ -200,6 +227,7 @@ document.addEventListener('DOMContentLoaded', function () {
   if (a4Btn) {
     a4Btn.addEventListener('click', function () {
       chrome.storage.local.set({ currentOrganization: 4 });
+      chrome.storage.local.set({ algorithmChoice: 4 });
       window.location.href = 'popup.html';
     });
   }
@@ -207,13 +235,16 @@ document.addEventListener('DOMContentLoaded', function () {
   if (a5Btn) {
     a5Btn.addEventListener('click', function () {
       chrome.storage.local.set({ currentOrganization: 5 });
+      chrome.storage.local.set({ algorithmChoice: 5 });
       window.location.href = 'popup.html';
     });
   }
 
   if (a6Btn) {
     a6Btn.addEventListener('click', function () {
-      chrome.storage.local.set({ currentOrganization: Math.floor(Math.random() * 6) + 1 });
+      let r = Math.floor(Math.random() * 6) + 1;
+      chrome.storage.local.set({ currentOrganization: r });
+      chrome.storage.local.set({ algorithmChoice: r });
       window.location.href = 'popup.html';
     });
   }
@@ -241,6 +272,7 @@ document.addEventListener('DOMContentLoaded', function () {
       });
 
       window.location.href = 'popup.html';
+      chrome.storage.local.set({ currentOrganization: 0 });
     });
   }
 
@@ -252,7 +284,7 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 function sortByDate(tasks, callback) {
-  return tasks.sort((a, b) => {
+  tasks.sort((a, b) => {
     const dateA = new Date(a.date);
     const dateB = new Date(b.date);
     return dateA - dateB;
@@ -263,29 +295,30 @@ function sortByDate(tasks, callback) {
 
 function sortByDifficulty(tasks, callback) {
   const difficultyOrder = { 'Easy': 1, 'Medium': 2, 'Hard': 3 };
-  return tasks.sort((a, b) => difficultyOrder[a.difficulty] - difficultyOrder[b.difficulty]);
+  tasks.sort((a, b) => difficultyOrder[a.difficulty] - difficultyOrder[b.difficulty]);
 
   saveTasks(tasks, callback);
 }
 
 function sortByInverseDifficulty(tasks, callback) {
   const difficultyOrder = { 'Easy': 1, 'Medium': 2, 'Hard': 3 };
-  return tasks.sort((a, b) => difficultyOrder[b.difficulty] - difficultyOrder[a.difficulty]);
+  tasks.sort((a, b) => difficultyOrder[b.difficulty] - difficultyOrder[a.difficulty]);
 
   saveTasks(tasks, callback);
 }
 
 function sortByTime(tasks, callback) {
   const timeOrder = { '15': 1, '30': 2, '60': 3, '120': 4, '240': 5 };
-  return tasks.sort((a, b) => timeOrder[a.time] - timeOrder[b.time]);
+  tasks.sort((a, b) => timeOrder[a.time] - timeOrder[b.time]);
 
   saveTasks(tasks, callback);
 }
 
 function sortByFluctuatingTimes(tasks, callback) {
+  let result = [];
   while (tasks.length > 0) {
     result.push(tasks.shift());
-    if (sortedArray.length > 0) {
+    if (tasks.length > 0) {
       result.push(tasks.pop());
     }
   }
@@ -293,7 +326,7 @@ function sortByFluctuatingTimes(tasks, callback) {
 }
 
 function sortByRandom(tasks, callback) {
-  return tasks.sort(() => Math.random() - 0.5);
+  tasks.sort(() => Math.random() - 0.5);
 
   saveTasks(tasks, callback);
 }
