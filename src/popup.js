@@ -315,6 +315,8 @@ function sortByTime(tasks, callback) {
 }
 
 function sortByFluctuatingTimes(tasks, callback) {
+  const timeOrder = { '15': 1, '30': 2, '60': 3, '120': 4, '240': 5 };
+  tasks.sort((a, b) => timeOrder[a.time] - timeOrder[b.time]);
   let result = [];
   while (tasks.length > 0) {
     result.push(tasks.shift());
@@ -322,7 +324,7 @@ function sortByFluctuatingTimes(tasks, callback) {
       result.push(tasks.pop());
     }
   }
-  saveTasks(result, callback); //saving the new order of tasks now instead of the tasks instance
+  saveTasks(result, callback);
 }
 
 function sortByRandom(tasks, callback) {
