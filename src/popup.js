@@ -1,25 +1,7 @@
 // Since we are going to use only one logic JS script
 // Make sure to use if (exists) for buttons and other things so we don't get errors
 
-// Algorithm choices:
-let currentOrganization = 0;
-let algorithmChoice = Math.floor(Math.random() * 6) + 1;
-
 const algoDisplay = document.getElementById('algoText');
-
-if (currentOrganization === 0) {
-  algoDisplay.textContent = "Unprioritized";
-} else if (currentOrganization === 1) {
-  algoDisplay.textContent = "Earliest Deadline";
-} else if (currentOrganization === 2) {
-  algoDisplay.textContent = "Easiest Difficulty";
-} else if (currentOrganization === 3) {
-  algoDisplay.textContent = "Hardest Difficulty";
-} else if (currentOrganization === 4) {
-  algoDisplay.textContent = "Fluctuating Times";
-} else if (currentOrganization === 5) {
-  algoDisplay.textContent = "Randomly Prioritized";
-}
 
 // Task class definition
 class Task {
@@ -143,9 +125,24 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-   if (pBtn) {
+  if (pBtn) {
     pBtn.addEventListener('click', function () {
-      currentOrganization = algorithmChoice;
+      chrome.storage.local.get(['currentOrganization'], function (result) {
+        const org = result.currentOrganization || 0;
+
+        const algoNames = {
+          0: "Unprioritized",
+          1: "Earliest Deadline",
+          2: "Easiest Difficulty",
+          3: "Hardest Difficulty",
+          4: "Fluctuating Times",
+          5: "Randomly Prioritized"
+        };
+
+        if (algoDisplay) {
+          algoDisplay.textContent = algoNames[org];
+        }
+      });
     });
   }
 
@@ -159,37 +156,43 @@ document.addEventListener('DOMContentLoaded', function () {
 
   if (a1Btn) {
     a1Btn.addEventListener('click', function () {
-      algorithmChoice = 1;
+      chrome.storage.local.set({ currentOrganization: 1 });
+      window.location.href = 'popup.html';
     });
   }
 
   if (a2Btn) {
     a2Btn.addEventListener('click', function () {
-      algorithmChoice = 2;
+      chrome.storage.local.set({ currentOrganization: 2 });
+      window.location.href = 'popup.html';
     });
   }
 
   if (a3Btn) {
     a3Btn.addEventListener('click', function () {
-      algorithmChoice = 3;
+      chrome.storage.local.set({ currentOrganization: 3 });
+      window.location.href = 'popup.html';
     });
   }
 
   if (a4Btn) {
     a4Btn.addEventListener('click', function () {
-      algorithmChoice = 5;
+      chrome.storage.local.set({ currentOrganization: 4 });
+      window.location.href = 'popup.html';
     });
   }
 
   if (a5Btn) {
     a5Btn.addEventListener('click', function () {
-      algorithmChoice = 6;
+      chrome.storage.local.set({ currentOrganization: 5 });
+      window.location.href = 'popup.html';
     });
   }
 
   if (a6Btn) {
     a6Btn.addEventListener('click', function () {
-      algorithmChoice = Math.floor(Math.random() * 6) + 1;
+      chrome.storage.local.set({ currentOrganization: Math.floor(Math.random() * 6) + 1 });
+      window.location.href = 'popup.html';
     });
   }
 
