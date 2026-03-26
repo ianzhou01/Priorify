@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <h2>Priorify</h2>
 
 <div id="tasks">
@@ -9,3 +10,45 @@
 <div id="recommendation">
   <p>No recommendation yet</p>
 </div>
+=======
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Priorify</title>
+    <link rel="stylesheet" href="popup.css">
+  </head>
+  <body>
+    <div class="container">
+        <h1>Priorify</h1>
+      <div class="button-row">
+        <div class ="non-action">
+          <button id="addBtn">Add</button>
+        </div>
+      <div class="action-col">
+        <button id="prioritizeBtn">Prioritize</button>
+        <a href="algo.html" style="color: #007bff; text-decoration: none; font-size: 9px; text-decoration: underline;">Choose your own algo</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="algorithm-display">
+      <p>Algorithm: <span id="algoText">Unprioritized</span></p>
+    </div>
+
+    <div id="tasksContainer">
+      <!-- Tasks will be dynamically inserted here -->
+       <div id="inProgress">
+        <h2>In Progress</h2>
+        <p>Tasks in progress will appear here.</p>
+       </div>
+       
+       <div id="completed">
+        <h2>Completed</h2>
+        <p>Completed tasks will appear here.</p>
+      </div>
+    </div>
+    <script src="popup.js"></script>
+  </body>
+</html>
+>>>>>>> 62092155e912065df669f6b4e347320c40ac9a6b
