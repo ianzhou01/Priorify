@@ -13,9 +13,7 @@
   },
 
   "permissions": [
-    "storage",
-    "alarms",
-    "notifications"
+    "storage"
   ],
   "web_accessible_resources": [
     {
