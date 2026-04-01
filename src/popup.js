@@ -165,24 +165,25 @@ function applySorting(org) {
 
 document.addEventListener('DOMContentLoaded', function () {
   if (window.location.pathname.includes('popup.html')) {
-    // chrome.storage.local.get(['currentOrganization'], function (result) {
-    //   const org = result.currentOrganization || 0;
-
-    //   const algoNames = {
-    //     0: "Unprioritized",
-    //     1: "Earliest Deadline",
-    //     2: "Easiest Difficulty",
-    //     3: "Hardest Difficulty",
-    //     4: "Fluctuating Times",
-    //     5: "Randomly Prioritized"
-    //   };
-
-    //   if (algoDisplay) {
-    //     algoDisplay.textContent = algoNames[org];
-    //   };
-    // });
-    renderTasks();
     loadSettings(_applySettingsCache);
+
+    // Sync timer state from background before rendering anything else
+    chrome.runtime.sendMessage({ type: 'GET_STATE' }, function (state) {
+      if (state && state.running) {
+        renderTimerView(state.taskName, state.secondsLeft, state.paused);
+        if (!state.paused) startTick();
+      } else {
+        // Check if the timer expired while popup was closed
+        chrome.storage.local.get('priorify_timer', function (result) {
+          if (result.priorify_timer && result.priorify_timer.expired) {
+            chrome.storage.local.set({ priorify_timer: { running: false } });
+            showOnly('checkInView');
+          } else {
+            renderTasks();
+          }
+        });
+      }
+    });
   }
 
 
@@ -564,13 +565,10 @@ function fireRipple(btn, e) {
   ripple.addEventListener('animationend', () => ripple.remove());
 }
 
-// Timer 
-const TIMER_DURATION = 25 * 60; // seconds
-const TIMER_SHORT    = 10 * 60;
-let timerInterval = null;
-let timerSecondsLeft = TIMER_DURATION;
-let timerPaused = false;
+// ── Timer ─────────────────────────────────────────────────
+const TIMER_SHORT = 10 * 60;
 let currentTaskTitle = '';
+let tickInterval = null;
 
 const MAIN_IDS = ['.container', '#recommendationBox', '#tasksContainer'];
 const FLOW_IDS = ['#timerView', '#checkInView', '#checkInYesView', '#checkInNoView'];
@@ -603,42 +601,58 @@ function showMain() {
   if (box.classList.contains('visible')) box.style.display = '';
 }
 
-function startTimer(taskName, duration) {
+function renderTimerView(taskName, secondsLeft, paused) {
   currentTaskTitle = taskName;
-  timerSecondsLeft = duration || TIMER_DURATION;
-  timerPaused = false;
-
   document.getElementById('timerTaskName').textContent = taskName;
-  updateTimerDisplay();
+  document.getElementById('pauseBtn').textContent = paused ? '▶ Resume' : '⏸ Pause';
+  document.getElementById('timerDisplay').classList.toggle('paused', paused);
+  setTimerDisplay(secondsLeft);
   showOnly('timerView');
-  document.getElementById('pauseBtn').textContent = '⏸ Pause';
-  document.getElementById('timerDisplay').classList.remove('paused');
+}
 
-  clearInterval(timerInterval);
-  timerInterval = setInterval(function () {
-    if (timerPaused) return;
-    timerSecondsLeft--;
-    updateTimerDisplay();
-    if (timerSecondsLeft <= 0) stopTimer();
+function setTimerDisplay(secondsLeft) {
+  const m = String(Math.floor(secondsLeft / 60)).padStart(2, '0');
+  const s = String(secondsLeft % 60).padStart(2, '0');
+  document.getElementById('timerDisplay').textContent = `${m}:${s}`;
+}
+
+// Start a local tick that re-reads state from background each second
+function startTick() {
+  clearInterval(tickInterval);
+  tickInterval = setInterval(function () {
+    chrome.runtime.sendMessage({ type: 'GET_STATE' }, function (state) {
+      if (!state || !state.running) {
+        clearInterval(tickInterval);
+        showOnly('checkInView');
+        return;
+      }
+      if (!state.paused) setTimerDisplay(state.secondsLeft);
+    });
   }, 1000);
 }
 
+function startTimer(taskName, duration) {
+  chrome.runtime.sendMessage({ type: 'START_TIMER', taskName, duration });
+  renderTimerView(taskName, duration, false);
+  startTick();
+}
+
 function togglePause() {
-  timerPaused = !timerPaused;
-  document.getElementById('pauseBtn').textContent = timerPaused ? '▶ Resume' : '⏸ Pause';
-  document.getElementById('timerDisplay').classList.toggle('paused', timerPaused);
+  chrome.runtime.sendMessage({ type: 'PAUSE_TIMER' });
+  // Optimistically flip the UI; next tick will confirm
+  const display = document.getElementById('timerDisplay');
+  const pauseBtn = document.getElementById('pauseBtn');
+  const nowPaused = !display.classList.contains('paused');
+  display.classList.toggle('paused', nowPaused);
+  pauseBtn.textContent = nowPaused ? '▶ Resume' : '⏸ Pause';
+  if (nowPaused) clearInterval(tickInterval);
+  else startTick();
 }
 
 function stopTimer() {
-  clearInterval(timerInterval);
-  timerInterval = null;
+  chrome.runtime.sendMessage({ type: 'STOP_TIMER' });
+  clearInterval(tickInterval);
   showOnly('checkInView');
-}
-
-function updateTimerDisplay() {
-  const m = String(Math.floor(timerSecondsLeft / 60)).padStart(2, '0');
-  const s = String(timerSecondsLeft % 60).padStart(2, '0');
-  document.getElementById('timerDisplay').textContent = `${m}:${s}`;
 }
 
 function showNewRecommendation(excludeTitle) {
