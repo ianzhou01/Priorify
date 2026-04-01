@@ -7,34 +7,40 @@
   </head>
   <body>
     <div class="container">
-        <h1>Priorify</h1>
+      <h1>Priorify</h1>
       <div class="button-row">
-        <div class ="non-action">
-          <button id="addBtn">Add</button>
+        <div class="non-action">
+          <button id="addBtn">+ Add Task</button>
         </div>
-      <div class="action-col">
-        <button id="prioritizeBtn">Prioritize</button>
+        <div class="action-col">
+          <button id="prioritizeBtn">Prioritize</button>
         </div>
       </div>
     </div>
+
     <div id="recommendationBox">
-      <h2>Start This</h2>
-      <p id="recommendationText">Click prioritize to get a recommendation</p>
-      <button id="startBtn">Start 25 min</button>
+      <h2>Recommended</h2>
+      <p id="recommendationText">Click Prioritize to get a recommendation</p>
+      <button id="startBtn">▶ Start 25 min</button>
     </div>
 
     <div id="tasksContainer">
       <!-- Tasks will be dynamically inserted here -->
-       <div id="inProgress">
+      <div id="inProgress">
         <h2>In Progress</h2>
-        <p>Tasks in progress will appear here.</p>
-       </div>
-       
-       <div id="completed">
+        <p>No tasks yet.</p>
+      </div>
+      <div id="completed">
         <h2>Completed</h2>
-        <p>Completed tasks will appear here.</p>
+        <p>Nothing here yet.</p>
       </div>
     </div>
+
+    <div id="undoToast">
+      <span id="undoToastMsg"></span>
+      <button id="undoBtn">Undo</button>
+    </div>
+
     <script src="popup.js"></script>
   </body>
 </html>
