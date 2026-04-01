@@ -103,7 +103,22 @@ function renderTasks() {
     if (!inProgressEl || !completedEl) return;
 
     const inProgress = tasks.filter(t => !t.status_completed);
+    
+
+    // new recommendation logic
+    const bestTask = getBestTask(inProgress);
+    const recText = document.getElementById("recommendationText");
+
+    if (recText) {
+      if (bestTask) {
+        recText.textContent = `Start: ${bestTask.title}`;
+      } else {
+        recText.textContent = "No tasks available";
+      }
+    }
     const completed = tasks.filter(t => t.status_completed);
+
+
 
     inProgressEl.innerHTML = '<h2>In Progress</h2>';
     if (inProgress.length === 0) {
@@ -167,14 +182,7 @@ document.addEventListener('DOMContentLoaded', function () {
     //     algoDisplay.textContent = algoNames[org];
     //   };
     // });
-    chrome.storage.local.get(['currentOrganization'], function (result) {
-      const org = result.currentOrganization || 0;
-      if (org > 0) {
-        applySorting(org);
-      } else {
-        renderTasks();
-      }
-    });
+    renderTasks();
   }
 
 
@@ -191,48 +199,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   if (pBtn) {
     pBtn.addEventListener('click', function () {
-      chrome.storage.local.get(['algorithmChoice'], function (result) {
-        chrome.storage.local.set({ currentOrganization: result.algorithmChoice || 0 });
-
-        switch (result.algorithmChoice) {
-          case 0:
-            if (algoDisplay) {
-              algoDisplay.textContent = "Unprioritized";
-            }
-            renderTasks();
-            break;
-          case 1:
-            if (algoDisplay) {
-              algoDisplay.textContent = "Earliest Deadline";
-            }
-            loadTasks(tasks => sortByDate(tasks, renderTasks));
-            break;
-          case 2:
-            if (algoDisplay) {
-              algoDisplay.textContent = "Easiest Difficulty";
-            }
-            loadTasks(tasks => sortByDifficulty(tasks, renderTasks));
-            break;
-          case 3:
-            if (algoDisplay) {
-              algoDisplay.textContent = "Hardest Difficulty";
-            }
-            loadTasks(tasks => sortByInverseDifficulty(tasks, renderTasks));
-            break;
-          case 4:
-            if (algoDisplay) {
-              algoDisplay.textContent = "Fluctuating Times";
-            }
-            loadTasks(tasks => sortByFluctuatingTimes(tasks, renderTasks));
-            break;
-          case 5:
-            if (algoDisplay) {
-              algoDisplay.textContent = "Randomly Prioritized";
-            }
-            loadTasks(tasks => sortByRandom(tasks, renderTasks));
-            break;
-        }
-      });
+      renderTasks(); // no algo choices
     });
   }
 
@@ -400,4 +367,54 @@ function sortByRandom(tasks, callback) {
   tasks.sort(() => Math.random() - 0.5);
 
   saveTasks(tasks, callback);
+}
+
+
+// Reworking core scoring function
+function computeUrgency(date) {
+  const now = new Date();
+  const due = new Date(date);
+  const diffDays = (due - now) / (1000 * 60 * 60 * 24);
+
+  return Math.max(0, 1 - diffDays / 7); // closer = higher urgency
+}
+
+function computeEffort(time) {
+  const map = {
+    '15': 0.2,
+    '30': 0.4,
+    '60': 0.6,
+    '120': 0.8,
+    '240': 1
+  };
+  return map[time] || 0.5;
+}
+
+function computeEnergy(difficulty) {
+  const map = {
+    'Easy': 0.2,
+    'Medium': 0.5,
+    'Hard': 0.9
+  };
+  return map[difficulty] || 0.5;
+}
+
+function scoreTask(task) {
+  const urgency = computeUrgency(task.date);
+  const effort = computeEffort(task.time);
+  const energy = computeEnergy(task.difficulty);
+
+  return (
+    urgency * 0.5 +
+    (1 - effort) * 0.3 +
+    energy * 0.2
+  );
+}
+
+function getBestTask(tasks) {
+  if (!tasks || tasks.length === 0) return null;
+
+  return tasks.reduce((best, current) => {
+    return scoreTask(current) > scoreTask(best) ? current : best;
+  });
 }
