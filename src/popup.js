@@ -89,7 +89,20 @@ function buildTaskCard(task, isCompleted) {
       if (!confirm(`Delete "${task.title}"?`)) return;
       loadTasks(function (tasks) {
         const updated = tasks.filter(t => !(t.title === task.title && t.status_completed === isCompleted));
-        saveTasks(updated, renderTasks);
+        saveTasks(updated, function () {
+          renderTasks();
+          const recText = document.getElementById('recommendationText');
+          const box = document.getElementById('recommendationBox');
+          if (recText && recText.textContent === task.title) {
+            recText.textContent = 'Click Prioritize to get a recommendation';
+            document.getElementById('recommendationMeta').textContent = '';
+            document.getElementById('recommendationRationale').textContent = '';
+            if (box) {
+              box.classList.remove('visible', 'faded-in');
+              box.style.display = 'none';
+            }
+          }
+        });
       });
     });
 
