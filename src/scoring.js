@@ -5,7 +5,7 @@ function computeUrgency(date) {
   const due = new Date(date);
   const diffDays = Math.max(0, (due - now) / (1000 * 60 * 60 * 24));
 
-  return Math.exp(-diffDays / 2); // Added exponential decay to increase sensitivity near deadlines
+  return Math.exp(-diffDays / 4); // Added exponential decay to increase sensitivity near deadlines
 }
 
 function computeEffort(time) {
