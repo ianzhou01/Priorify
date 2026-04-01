@@ -209,8 +209,23 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   if (pBtn) {
-    pBtn.addEventListener('click', function () {
-      renderTasks(); // no algo choices
+    pBtn.addEventListener('click', function (e) {
+      // Ripple from click position
+      const ripple = document.createElement('span');
+      ripple.classList.add('ripple');
+      const rect = pBtn.getBoundingClientRect();
+      ripple.style.left = (e.clientX - rect.left) + 'px';
+      ripple.style.top  = (e.clientY - rect.top)  + 'px';
+      pBtn.appendChild(ripple);
+      ripple.addEventListener('animationend', () => ripple.remove());
+
+      // Spring bounce
+      pBtn.classList.remove('pressed');
+      void pBtn.offsetWidth; // force reflow so re-clicking restarts animation
+      pBtn.classList.add('pressed');
+      pBtn.addEventListener('animationend', () => pBtn.classList.remove('pressed'), { once: true });
+
+      renderTasks();
     });
   }
 
@@ -432,7 +447,7 @@ function showUndoToast(label, doUndo) {
   const msgEl = document.getElementById('undoToastMsg');
   if (!toast) return;
 
-  // Dismiss any existing toast without reversing — its action already committed
+  // Dismiss any existing toast without reversing the previous action
   if (toastTimer) {
     clearTimeout(toastTimer);
     dismissToast();
