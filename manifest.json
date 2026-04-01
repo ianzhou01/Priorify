@@ -7,13 +7,15 @@
   "action": {
     "default_popup": "src/popup.html"
   },
-
+  
   "background": {
     "service_worker": "src/background.js"
   },
 
   "permissions": [
-    "storage"
+    "storage",
+    "alarms",
+    "notifications"
   ],
   "web_accessible_resources": [
     {
