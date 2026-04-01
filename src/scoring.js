@@ -53,6 +53,11 @@ function getBestTask(tasks, mode) {
   );
 }
 
+function getSecondBestTask(tasks, mode, winner) {
+  const rest = tasks.filter(t => t !== winner);
+  return getBestTask(rest, mode);
+}
+
 //  Recommendation display helpers 
 
 function formatDueDate(dateStr) {
@@ -70,27 +75,86 @@ function getRecMeta(task) {
   return `${formatDueDate(task.date)} • ${timeLabel} • ${difficultyEmoji} ${task.difficulty}`;
 }
 
-function getRecRationale(task) {
+// Short inline summary shown beneath the task name by default
+function getRecSummary(task) {
   const urgency    = computeUrgency(task.date);
-  const effort     = computeLength(task.time);
-  const energy     = computeEffort(task.difficulty);
+  const length     = computeLength(task.time);
   const importance = task.importance ?? 3;
   const parts      = [];
 
-  if (urgency > 0.7)       parts.push('High urgency');
-  else if (urgency > 0.35) parts.push('Moderate urgency');
-  else                     parts.push('Low urgency');
+  if (urgency > 0.7)        parts.push('urgent');
+  else if (urgency > 0.35)  parts.push('moderate deadline');
+  if (importance >= 4)      parts.push('high importance');
+  if (length < 0.4)         parts.push('quick win');
 
-  if (effort < 0.4)        parts.push('quick win');
-  else if (effort < 0.7)   parts.push('manageable effort');
-  else                     parts.push('heavy lift');
+  return parts.length ? parts.join(' · ') : 'top pick';
+}
 
-  if (energy > 0.7)        parts.push('high energy needed');
-  else if (energy > 0.4)   parts.push('moderate focus');
-  else                     parts.push('low energy needed');
+// ── Comparative explanation ────────────────────────────────
+const IMPORTANCE_LABELS = { 1: 'minimal', 2: 'low', 3: 'moderate', 4: 'high', 5: 'critical' };
+const TIME_LABELS = { '15': '15 min', '30': '30 min', '60': '1 hr', '120': '2 hrs', '240': '4+ hrs' };
+const DIFFICULTY_LABELS = { Easy: 'easy', Medium: 'moderate', Hard: 'hard' };
 
-  if (importance >= 4)     parts.push('high importance');
-  else if (importance <= 2) parts.push('low importance');
+function getRecExplanation(winner, runner, mode) {
+  if (!runner) return null;
 
-  return parts.join(' + ');
+  const lines = [];
+
+  // Importance
+  const wi = winner.importance ?? 3;
+  const ri = runner.importance ?? 3;
+  if (wi !== ri) {
+    lines.push(`Importance: ${IMPORTANCE_LABELS[wi]} vs ${IMPORTANCE_LABELS[ri]}`);
+  }
+
+  // Urgency
+  const wu = computeUrgency(winner.date);
+  const ru = computeUrgency(runner.date);
+  const wDays = Math.round(Math.max(0, (new Date(winner.date) - new Date()) / (1000 * 60 * 60 * 24)));
+  const rDays = Math.round(Math.max(0, (new Date(runner.date) - new Date()) / (1000 * 60 * 60 * 24)));
+  const wDueStr = wDays === 0 ? 'today' : wDays === 1 ? 'tomorrow' : `in ${wDays}d`;
+  const rDueStr = rDays === 0 ? 'today' : rDays === 1 ? 'tomorrow' : `in ${rDays}d`;
+  if (Math.abs(wu - ru) > 0.05) {
+    const dir = wu > ru ? 'More urgent' : 'Less urgent';
+    lines.push(`Urgency: ${dir} (due ${wDueStr} vs ${rDueStr})`);
+  }
+
+  // Effort (length)
+  const wl = computeLength(winner.time);
+  const rl = computeLength(runner.time);
+  const wLenStr = TIME_LABELS[winner.time] || winner.time;
+  const rLenStr = TIME_LABELS[runner.time] || runner.time;
+  if (wl !== rl) {
+    const w = SCORE_WEIGHTS[mode] || SCORE_WEIGHTS.balanced;
+    if (wl < rl) {
+      lines.push(`Effort: Shorter task (${wLenStr} vs ${rLenStr})`);
+    } else {
+      // Longer but still won — explain why
+      const importanceJustifies = wi > ri && w.importance > 0.15;
+      const urgencyJustifies    = wu > ru + 0.2;
+      const qualifier = importanceJustifies ? ', justified by importance'
+                      : urgencyJustifies    ? ', justified by urgency'
+                      : '';
+      lines.push(`Effort: Longer (${wLenStr} vs ${rLenStr})${qualifier}`);
+    }
+  }
+
+  // Difficulty
+  const we = computeEffort(winner.difficulty);
+  const re = computeEffort(runner.difficulty);
+  if (we !== re) {
+    const wDiff = DIFFICULTY_LABELS[winner.difficulty] || winner.difficulty;
+    const rDiff = DIFFICULTY_LABELS[runner.difficulty] || runner.difficulty;
+    lines.push(`Difficulty: ${wDiff} vs ${rDiff}`);
+  }
+
+  if (lines.length === 0) {
+    lines.push('Marginally higher overall score');
+  }
+
+  return {
+    winner: winner.title,
+    runner: runner.title,
+    lines
+  };
 }

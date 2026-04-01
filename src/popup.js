@@ -99,6 +99,7 @@ function buildTaskCard(task, isCompleted) {
             recText.textContent = 'Click Prioritize to get a recommendation';
             document.getElementById('recommendationMeta').textContent = '';
             document.getElementById('recommendationRationale').textContent = '';
+            clearRecExplanation();
             if (box) {
               box.classList.remove('visible', 'faded-in');
               box.style.display = 'none';
@@ -206,6 +207,16 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+  // (?) explanation toggle
+  const explainBtn = document.getElementById('explainBtn');
+  const recExplanation = document.getElementById('recExplanation');
+  if (explainBtn && recExplanation) {
+    explainBtn.addEventListener('click', function () {
+      recExplanation.classList.toggle('visible');
+      explainBtn.textContent = recExplanation.classList.contains('visible') ? '✕' : '?';
+    });
+  }
+
   // popup.html logic
   const aBtn = document.getElementById('addBtn');
   const pBtn = document.getElementById('prioritizeBtn');
@@ -232,22 +243,18 @@ document.addEventListener('DOMContentLoaded', function () {
       // Update recommendation box
       loadTasks(function (tasks) {
         const inProgress = tasks.filter(t => !t.status_completed);
-        const bestTask = getBestTask(inProgress, _currentPriorityMode);
-        const box = document.getElementById('recommendationBox');
-        const recText = document.getElementById('recommendationText');
-        const recMeta = document.getElementById('recommendationMeta');
-        const recRationale = document.getElementById('recommendationRationale');
-
-        if (!box || !recText) return;
+        const bestTask   = getBestTask(inProgress, _currentPriorityMode);
+        const runnerUp   = getSecondBestTask(inProgress, _currentPriorityMode, bestTask);
+        const box        = document.getElementById('recommendationBox');
+        if (!box) return;
 
         if (bestTask) {
-          recText.textContent = bestTask.title;
-          if (recMeta)      recMeta.textContent      = getRecMeta(bestTask);
-          if (recRationale) recRationale.textContent = getRecRationale(bestTask);
+          renderRecBox(bestTask, runnerUp);
         } else {
-          recText.textContent = 'No tasks available';
-          if (recMeta)      recMeta.textContent      = '';
-          if (recRationale) recRationale.textContent = '';
+          document.getElementById('recommendationText').textContent = 'No tasks available';
+          document.getElementById('recommendationMeta').textContent = '';
+          document.getElementById('recommendationRationale').textContent = '';
+          clearRecExplanation();
         }
 
         // Reveal with fade on first click; just update content on subsequent clicks
@@ -565,23 +572,45 @@ function stopTimer() {
 function showNewRecommendation(excludeTitle) {
   loadTasks(function (tasks) {
     const inProgress = tasks.filter(t => !t.status_completed && t.title !== excludeTitle);
-    const bestTask = getBestTask(inProgress, _currentPriorityMode);
-    const box = document.getElementById('recommendationBox');
-    const recText = document.getElementById('recommendationText');
-    const recMeta = document.getElementById('recommendationMeta');
-    const recRationale = document.getElementById('recommendationRationale');
+    const bestTask   = getBestTask(inProgress, _currentPriorityMode);
+    const runnerUp   = getSecondBestTask(inProgress, _currentPriorityMode, bestTask);
+    const box        = document.getElementById('recommendationBox');
 
     switchView('main');
     renderTasks();
 
     if (bestTask) {
-      recText.textContent = bestTask.title;
-      if (recMeta)      recMeta.textContent      = getRecMeta(bestTask);
-      if (recRationale) recRationale.textContent = getRecRationale(bestTask);
+      renderRecBox(bestTask, runnerUp);
       box.classList.add('visible');
       box.style.display = '';
       requestAnimationFrame(() => box.classList.add('faded-in'));
     }
   });
+}
+
+function renderRecBox(best, runner) {
+  document.getElementById('recommendationText').textContent = best.title;
+  document.getElementById('recommendationMeta').textContent = getRecMeta(best);
+  document.getElementById('recommendationRationale').textContent = getRecSummary(best);
+
+  const explanation = getRecExplanation(best, runner, _currentPriorityMode);
+  if (explanation) {
+    const panel = document.getElementById('recExplanation');
+    panel.innerHTML = `<div class="explain-header">${explanation.winner} chosen over ${explanation.runner}</div>`
+      + '<ul>' + explanation.lines.map(l => `<li>${l}</li>`).join('') + '</ul>';
+    // Keep panel open/closed state but refresh content; reset to closed on new recommendation
+    panel.classList.remove('visible');
+    const btn = document.getElementById('explainBtn');
+    if (btn) btn.textContent = '?';
+  } else {
+    clearRecExplanation();
+  }
+}
+
+function clearRecExplanation() {
+  const panel = document.getElementById('recExplanation');
+  if (panel) { panel.innerHTML = ''; panel.classList.remove('visible'); }
+  const btn = document.getElementById('explainBtn');
+  if (btn) btn.textContent = '?';
 }
 
