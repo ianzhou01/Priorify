@@ -76,6 +76,20 @@ function buildTaskCard(task, isCompleted) {
       });
     });
 
+    card.querySelector('.delete-btn').addEventListener('click', function () {
+      if (!confirm(`Delete "${task.title}"?`)) return;
+      loadTasks(function (tasks) {
+        const updated = tasks.filter(t => !(t.title === task.title && t.status_completed === isCompleted));
+        saveTasks(updated, renderTasks);
+      });
+    });
+
+    card.querySelector('.edit-btn').addEventListener('click', function () {
+      chrome.storage.local.set({ editingTask: { title: task.title, wasCompleted: isCompleted } }, () => {
+        window.location.href = 'taskform.html';
+      });
+    });
+
     return card;
   });
 }
@@ -136,8 +150,6 @@ function applySorting(org) {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-  renderTasks();
-
   if (window.location.pathname.includes('popup.html')) {
     // chrome.storage.local.get(['currentOrganization'], function (result) {
     //   const org = result.currentOrganization || 0;
@@ -286,25 +298,50 @@ document.addEventListener('DOMContentLoaded', function () {
   const cancelBtn = document.getElementById('cancelBtn');
 
   if (taskForm) {
+    chrome.storage.local.get(['editingTask'], function (result) {
+      if (result.editingTask) {
+        const { title, wasCompleted } = result.editingTask;
+        document.getElementById('formHeading').textContent = 'Edit Task';
+        loadTasks(function (tasks) {
+          const match = tasks.find(t => t.title === title && t.status_completed === wasCompleted);
+          if (match) {
+            document.getElementById('title').value = match.title;
+            document.getElementById('date').value = match.date;
+            document.getElementById('time').value = match.time;
+            document.getElementById('difficulty').value = match.difficulty;
+          }
+        });
+      }
+    });
+
     taskForm.addEventListener('submit', function (e) {
       e.preventDefault();
+      const newTitle = document.getElementById('title').value;
+      const newDate = document.getElementById('date').value;
+      const newTime = document.getElementById('time').value;
+      const newDifficulty = document.getElementById('difficulty').value;
 
-      const task = new Task(
-        document.getElementById('title').value,
-        document.getElementById('date').value,
-        document.getElementById('time').value,
-        document.getElementById('difficulty').value
-      );
-
-      loadTasks(function (tasks) {
-        tasks.push(task);
-        saveTasks(tasks, function () {
-          window.location.href = 'popup.html'; // only navigates after save completes
+      chrome.storage.local.get(['editingTask'], function (result) {
+        loadTasks(function (tasks) {
+          if (result.editingTask) {
+            const { title, wasCompleted } = result.editingTask;
+            const match = tasks.find(t => t.title === title && t.status_completed === wasCompleted);
+            if (match) {
+              match.title = newTitle;
+              match.date = newDate;
+              match.time = newTime;
+              match.difficulty = newDifficulty;
+            }
+            chrome.storage.local.remove('editingTask');
+          } else {
+            tasks.push(new Task(newTitle, newDate, newTime, newDifficulty));
+          }
+          saveTasks(tasks, () => {
+            chrome.storage.local.set({ currentOrganization: 0 });
+            window.location.href = 'popup.html';
+          });
         });
       });
-
-      window.location.href = 'popup.html';
-      chrome.storage.local.set({ currentOrganization: 0 });
     });
   }
 
