@@ -36,7 +36,7 @@ function scoreTask(task, mode) {
   return (
     urgency        * w.urgency +
     (1 - effort)   * w.effort  +
-    energy         * w.energy
+    (1 - energy)   * w.energy
   );
 }
 
