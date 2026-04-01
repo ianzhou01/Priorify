@@ -37,6 +37,16 @@
           <option value="Easy">🟢 Low</option>
         </select>
  
+        <label>Importance</label>
+        <div id="starPicker" class="star-picker">
+          <span class="star" data-value="1">★</span>
+          <span class="star" data-value="2">★</span>
+          <span class="star" data-value="3">★</span>
+          <span class="star" data-value="4">★</span>
+          <span class="star" data-value="5">★</span>
+          <input type="hidden" id="importance" value="3" />
+        </div>
+
         <div class="form-buttons">
           <button type="submit" id="submitBtn">Add Task</button>
           <button type="button" id="cancelBtn">Cancel</button>

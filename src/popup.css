@@ -648,6 +648,36 @@ button {
   background: white;
 }
 
+/* Star picker (task form) */
+.star-picker {
+  display: flex;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.star-picker .star {
+  font-size: 22px;
+  color: rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  transition: color 0.1s ease, transform 0.1s ease;
+  user-select: none;
+}
+
+.star-picker .star.active {
+  color: #fbbf24;
+}
+
+.star-picker .star:hover {
+  transform: scale(1.2);
+}
+
+/* Stars in task cards */
+.task-stars {
+  color: #fbbf24;
+  font-size: 11px;
+  letter-spacing: 1px;
+}
+
 .form-buttons {
   display: flex;
   gap: 8px;

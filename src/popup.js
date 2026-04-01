@@ -3,11 +3,12 @@
 
 // Task class definition
 class Task {
-  constructor(_title, _date, _time, _difficulty) {
+  constructor(_title, _date, _time, _difficulty, _importance = 3) {
     this.title = _title;
     this.date = _date; //    ->    MM/DD/YYYY
     this.time = _time;
     this.difficulty = _difficulty;
+    this.importance = _importance;
     this.status_completed = false;
   }
 
@@ -29,7 +30,7 @@ function loadTasks(callback) {
   chrome.storage.local.get('priorify_tasks', function (result) {
     const raw = result.priorify_tasks || [];
     const tasks = raw.map(t => {
-      const task = new Task(t.title, t.date, t.time, t.difficulty);
+      const task = new Task(t.title, t.date, t.time, t.difficulty, t.importance ?? 3);
       task.status_completed = t.status_completed;
       return task;
     });
@@ -61,7 +62,8 @@ function buildTaskCard(task, isCompleted) {
     const card = wrapper.firstElementChild;
 
     card.querySelector('.task-title').textContent = task.title;
-    card.querySelector('.task-meta').innerHTML = `📅 ${task.date} &nbsp;|&nbsp; ⏱ ${timeLabel} &nbsp;|&nbsp; ${difficultyEmoji} ${task.difficulty}`;
+    const stars = '★'.repeat(task.importance) + '☆'.repeat(5 - task.importance);
+    card.querySelector('.task-meta').innerHTML = `📅 ${task.date} &nbsp;|&nbsp; ⏱ ${timeLabel} &nbsp;|&nbsp; ${difficultyEmoji} ${task.difficulty} &nbsp;|&nbsp; <span class="task-stars">${stars}</span>`;
     card.querySelector('.mark-btn').textContent = isCompleted ? '↩ Unmark' : '✔ Mark Complete';
 
     card.querySelector('.mark-btn').addEventListener('click', function () {
@@ -311,6 +313,7 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('date').value = match.date;
             document.getElementById('time').value = match.time;
             document.getElementById('difficulty').value = match.difficulty;
+            setStarRating(match.importance ?? 3);
           }
         });
       }
@@ -322,6 +325,7 @@ document.addEventListener('DOMContentLoaded', function () {
       const newDate = document.getElementById('date').value;
       const newTime = document.getElementById('time').value;
       const newDifficulty = document.getElementById('difficulty').value;
+      const newImportance = parseInt(document.getElementById('importance').value, 10);
 
       chrome.storage.local.get(['editingTask'], function (result) {
         loadTasks(function (tasks) {
@@ -333,10 +337,11 @@ document.addEventListener('DOMContentLoaded', function () {
               match.date = newDate;
               match.time = newTime;
               match.difficulty = newDifficulty;
+              match.importance = newImportance;
             }
             chrome.storage.local.remove('editingTask');
           } else {
-            tasks.push(new Task(newTitle, newDate, newTime, newDifficulty));
+            tasks.push(new Task(newTitle, newDate, newTime, newDifficulty, newImportance));
           }
           saveTasks(tasks, () => {
             chrome.storage.local.set({ currentOrganization: 0 });
@@ -352,7 +357,37 @@ document.addEventListener('DOMContentLoaded', function () {
       window.location.href = 'popup.html';
     });
   }
+
+  // Star picker (taskform.html)
+  const starPicker = document.getElementById('starPicker');
+  if (starPicker) {
+    setStarRating(3);
+    starPicker.querySelectorAll('.star').forEach(function (star) {
+      star.addEventListener('click', function () {
+        setStarRating(parseInt(star.dataset.value, 10));
+      });
+      star.addEventListener('mouseover', function () {
+        highlightStars(starPicker, parseInt(star.dataset.value, 10));
+      });
+      star.addEventListener('mouseleave', function () {
+        highlightStars(starPicker, parseInt(document.getElementById('importance').value, 10));
+      });
+    });
+  }
 });
+
+function setStarRating(value) {
+  const starPicker = document.getElementById('starPicker');
+  if (!starPicker) return;
+  document.getElementById('importance').value = value;
+  highlightStars(starPicker, value);
+}
+
+function highlightStars(picker, value) {
+  picker.querySelectorAll('.star').forEach(function (star) {
+    star.classList.toggle('active', parseInt(star.dataset.value, 10) <= value);
+  });
+}
 
 
 //  Settings 

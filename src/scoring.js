@@ -18,25 +18,31 @@ function computeEffort(difficulty) {
   return map[difficulty] || 0.5;
 }
 
+function computeImportance(importance) {
+  return (Math.max(1, Math.min(5, importance)) - 1) / 4; // 1★ → 0, 5★ → 1
+}
+
 //  Weighted scoring 
 
 const SCORE_WEIGHTS = {
-  urgent:   { urgency: 0.8, length: 0.1, effort: 0.1 },
-  easy:     { urgency: 0.2, length: 0.6, effort: 0.2 },
-  balanced: { urgency: 0.5, length: 0.3, effort: 0.2 },
+  urgent:   { urgency: 0.7, length: 0.05, effort: 0.05, importance: 0.2 },
+  easy:     { urgency: 0.15, length: 0.5, effort: 0.15, importance: 0.2 },
+  balanced: { urgency: 0.4, length: 0.25, effort: 0.15, importance: 0.2 },
 };
 
 // mode: 'urgent' | 'easy' | 'balanced'
 function scoreTask(task, mode) {
-  const urgency = computeUrgency(task.date);
-  const length  = computeLength(task.time);
-  const effort  = computeEffort(task.difficulty);
+  const urgency    = computeUrgency(task.date);
+  const length     = computeLength(task.time);
+  const effort     = computeEffort(task.difficulty);
+  const importance = computeImportance(task.importance ?? 3);
   const w = SCORE_WEIGHTS[mode] || SCORE_WEIGHTS.balanced;
 
   return (
     urgency        * w.urgency +
     (1 - length)   * w.length  +
-    (1 - effort)   * w.effort
+    (1 - effort)   * w.effort  +
+    importance     * w.importance
   );
 }
 
@@ -65,10 +71,11 @@ function getRecMeta(task) {
 }
 
 function getRecRationale(task) {
-  const urgency = computeUrgency(task.date);
-  const effort  = computeLength(task.time);
-  const energy  = computeEffort(task.difficulty);
-  const parts   = [];
+  const urgency    = computeUrgency(task.date);
+  const effort     = computeLength(task.time);
+  const energy     = computeEffort(task.difficulty);
+  const importance = task.importance ?? 3;
+  const parts      = [];
 
   if (urgency > 0.7)       parts.push('High urgency');
   else if (urgency > 0.35) parts.push('Moderate urgency');
@@ -81,6 +88,9 @@ function getRecRationale(task) {
   if (energy > 0.7)        parts.push('high energy needed');
   else if (energy > 0.4)   parts.push('moderate focus');
   else                     parts.push('low energy needed');
+
+  if (importance >= 4)     parts.push('high importance');
+  else if (importance <= 2) parts.push('low importance');
 
   return parts.join(' + ');
 }
