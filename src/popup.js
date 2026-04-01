@@ -182,8 +182,38 @@ document.addEventListener('DOMContentLoaded', function () {
     //   };
     // });
     renderTasks();
+    loadSettings(_applySettingsCache);
   }
 
+
+  // Settings panel
+  const settingsBtn = document.getElementById('settingsBtn');
+  const settingsPanel = document.getElementById('settingsPanel');
+
+  function closeSettings() {
+    settingsPanel.classList.remove('open');
+    settingsBtn.classList.remove('open');
+  }
+
+  if (settingsBtn && settingsPanel) {
+    settingsBtn.addEventListener('click', function () {
+      const isOpen = settingsPanel.classList.toggle('open');
+      settingsBtn.classList.toggle('open', isOpen);
+    });
+
+    const settingsCloseBtn = document.getElementById('settingsCloseBtn');
+    if (settingsCloseBtn) {
+      settingsCloseBtn.addEventListener('click', closeSettings);
+    }
+
+    settingsPanel.addEventListener('change', function () {
+      const priority = settingsPanel.querySelector('input[name="priority"]:checked').value;
+      const duration = parseInt(settingsPanel.querySelector('input[name="duration"]:checked').value, 10);
+      saveSettings({ priority, duration }, function () {
+        _applySettingsCache({ priority, duration });
+      });
+    });
+  }
 
   // popup.html logic
   const aBtn = document.getElementById('addBtn');
@@ -211,7 +241,7 @@ document.addEventListener('DOMContentLoaded', function () {
       // Update recommendation box
       loadTasks(function (tasks) {
         const inProgress = tasks.filter(t => !t.status_completed);
-        const bestTask = getBestTask(inProgress);
+        const bestTask = getBestTask(inProgress, _currentPriorityMode);
         const box = document.getElementById('recommendationBox');
         const recText = document.getElementById('recommendationText');
         const recMeta = document.getElementById('recommendationMeta');
@@ -243,7 +273,7 @@ document.addEventListener('DOMContentLoaded', function () {
     sBtn.addEventListener('click', function (e) {
       fireRipple(sBtn, e);
       const taskName = document.getElementById('recommendationText').textContent;
-      startTimer(taskName);
+      startTimer(taskName, _currentDuration);
     });
   }
 
@@ -271,7 +301,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   rippleWire('checkInYes',      () => showOnly('checkInYesView'));
   rippleWire('checkInNo',       () => showOnly('checkInNoView'));
-  rippleWire('continueBtn',     () => startTimer(currentTaskTitle, TIMER_DURATION));
+  rippleWire('continueBtn',     () => startTimer(currentTaskTitle, _currentDuration));
   rippleWire('newRecBtn',       () => showNewRecommendation(currentTaskTitle));
   rippleWire('tryShortBtn',     () => startTimer(currentTaskTitle, TIMER_SHORT));
   rippleWire('suggestOtherBtn', () => showNewRecommendation(currentTaskTitle));
@@ -443,82 +473,47 @@ function sortByRandom(tasks, callback) {
 }
 
 
-// Reworking core scoring function
-function computeUrgency(date) {
-  const now = new Date();
-  const due = new Date(date);
-  const diffDays = (due - now) / (1000 * 60 * 60 * 24);
+// ── Settings ──────────────────────────────────────────────
+const DEFAULT_SETTINGS = { priority: 'balanced', duration: 1500 };
 
-  return Math.max(0, 1 - diffDays / 7); // closer = higher urgency
+function loadSettings(callback) {
+  chrome.storage.local.get('priorify_settings', function (result) {
+    callback(Object.assign({}, DEFAULT_SETTINGS, result.priorify_settings));
+  });
 }
 
-function computeEffort(time) {
-  const map = {
-    '15': 0.2,
-    '30': 0.4,
-    '60': 0.6,
-    '120': 0.8,
-    '240': 1
-  };
-  return map[time] || 0.5;
+function saveSettings(settings, callback) {
+  chrome.storage.local.set({ priorify_settings: settings }, callback);
 }
 
-function computeEnergy(difficulty) {
-  const map = {
-    'Easy': 0.2,
-    'Medium': 0.5,
-    'Hard': 0.9
-  };
-  return map[difficulty] || 0.5;
+function applySettingsToUI(settings) {
+  // Sync radio buttons
+  const panel = document.getElementById('settingsPanel');
+  if (panel) {
+    const pRadio = panel.querySelector(`input[name="priority"][value="${settings.priority}"]`);
+    const dRadio = panel.querySelector(`input[name="duration"][value="${settings.duration}"]`);
+    if (pRadio) pRadio.checked = true;
+    if (dRadio) dRadio.checked = true;
+  }
+
+  // Update start button label
+  const mins = Math.round(settings.duration / 60);
+  const sBtn = document.getElementById('startBtn');
+  if (sBtn) sBtn.textContent = `▶ Start ${mins} min`;
+
+  // Update continue button label in check-in yes view
+  const cBtn = document.getElementById('continueBtn');
+  if (cBtn) cBtn.textContent = `Continue (${mins} min)`;
 }
 
-function formatDueDate(dateStr) {
-  const now = new Date();
-  const due = new Date(dateStr);
-  const diffDays = Math.round((due - now) / (1000 * 60 * 60 * 24));
+let _currentPriorityMode = 'balanced';
+let _currentDuration = 1500;
 
-  if (diffDays <= 0) return 'Due today';
-  if (diffDays === 1) return 'Due tomorrow';
-  return `Due in ${diffDays} day${diffDays !== 1 ? 's' : ''}`;
-}
-
-function getRecMeta(task) {
-  const timeLabel = { '15': '15 min', '30': '30 min', '60': '1 hr', '120': '2 hrs', '240': '4+ hrs' }[task.time] || `${task.time} min`;
-  const difficultyEmoji = { Hard: '🔴', Medium: '🟡', Easy: '🟢' }[task.difficulty] || '';
-  return `${formatDueDate(task.date)} • ${timeLabel} • ${difficultyEmoji} ${task.difficulty}`;
-}
-
-function getRecRationale(task) {
-  const urgency = computeUrgency(task.date);
-  const effort = computeEffort(task.time);
-  const energy = computeEnergy(task.difficulty);
-
-  const parts = [];
-
-  if (urgency > 0.7)       parts.push('High urgency');
-  else if (urgency > 0.35) parts.push('Moderate urgency');
-  else                     parts.push('Low urgency');
-
-  if (effort < 0.4)        parts.push('quick win');
-  else if (effort < 0.7)   parts.push('manageable effort');
-  else                     parts.push('heavy lift');
-
-  if (energy > 0.7)        parts.push('high energy needed');
-  else if (energy > 0.4)   parts.push('moderate focus');
-
-  return parts.join(' + ');
-}
-
-function scoreTask(task) {
-  const urgency = computeUrgency(task.date);
-  const effort = computeEffort(task.time);
-  const energy = computeEnergy(task.difficulty);
-
-  return (
-    urgency * 0.5 +
-    (1 - effort) * 0.3 +
-    energy * 0.2
-  );
+// Keep module-level cache in sync whenever settings are loaded/saved
+function _applySettingsCache(settings) {
+  _currentPriorityMode = settings.priority;
+  _currentDuration = settings.duration;
+  applySettingsToUI(settings);
 }
 
 // Undo Toast
@@ -558,7 +553,7 @@ function dismissToast() {
   pendingUndo = null;
 }
 
-// ── Ripple helper ────────────────────────────────────────
+// Ripple helper 
 function fireRipple(btn, e) {
   const ripple = document.createElement('span');
   ripple.classList.add('ripple');
@@ -569,7 +564,7 @@ function fireRipple(btn, e) {
   ripple.addEventListener('animationend', () => ripple.remove());
 }
 
-// ── Timer ─────────────────────────────────────────────────
+// Timer 
 const TIMER_DURATION = 25 * 60; // seconds
 const TIMER_SHORT    = 10 * 60;
 let timerInterval = null;
@@ -649,7 +644,7 @@ function updateTimerDisplay() {
 function showNewRecommendation(excludeTitle) {
   loadTasks(function (tasks) {
     const inProgress = tasks.filter(t => !t.status_completed && t.title !== excludeTitle);
-    const bestTask = getBestTask(inProgress);
+    const bestTask = getBestTask(inProgress, _currentPriorityMode);
     const box = document.getElementById('recommendationBox');
     const recText = document.getElementById('recommendationText');
     const recMeta = document.getElementById('recommendationMeta');
@@ -669,10 +664,3 @@ function showNewRecommendation(excludeTitle) {
   });
 }
 
-function getBestTask(tasks) {
-  if (!tasks || tasks.length === 0) return null;
-
-  return tasks.reduce((best, current) => {
-    return scoreTask(current) > scoreTask(best) ? current : best;
-  });
-}
