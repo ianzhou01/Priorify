@@ -6,8 +6,38 @@
     <link rel="stylesheet" href="popup.css">
   </head>
   <body>
+    <div id="settingsPanel">
+      <button id="settingsCloseBtn" title="Close">✕</button>
+      <div id="settingsContent">
+        <h3>Settings</h3>
+
+        <p class="settings-label">I prefer:</p>
+        <label class="radio-option">
+          <input type="radio" name="priority" value="urgent"> Urgent tasks
+        </label>
+        <label class="radio-option">
+          <input type="radio" name="priority" value="easy"> Easy wins
+        </label>
+        <label class="radio-option">
+          <input type="radio" name="priority" value="balanced" checked> Balanced (default)
+        </label>
+
+        <p class="settings-label">Default session:</p>
+        <label class="radio-option">
+          <input type="radio" name="duration" value="600"> 10 min
+        </label>
+        <label class="radio-option">
+          <input type="radio" name="duration" value="1500" checked> 25 min
+        </label>
+        <label class="radio-option">
+          <input type="radio" name="duration" value="2700"> 45 min
+        </label>
+      </div>
+    </div>
+
     <div class="container">
       <h1>Priorify</h1>
+      <button id="settingsBtn" title="Settings">⚙</button>
       <div class="button-row">
         <div class="non-action">
           <button id="addBtn">+ Add Task</button>
@@ -27,7 +57,7 @@
     </div>
 
     <div id="tasksContainer">
-      <!-- Tasks will be dynamically inserted here -->
+      <!-- Tasks are dynamically inserted here -->
       <div id="inProgress">
         <h2>In Progress</h2>
         <p>No tasks yet.</p>
@@ -77,6 +107,7 @@
       <button id="undoBtn">Undo</button>
     </div>
 
+    <script src="scoring.js"></script>
     <script src="popup.js"></script>
   </body>
 </html>

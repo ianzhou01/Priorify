@@ -12,6 +12,124 @@ body {
 
 .container {
   text-align: center;
+  position: relative;
+}
+
+/* ── Settings button ──────────────────────────────────── */
+#settingsBtn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  margin-top: 0;
+  border-radius: 50%;
+  background: white;
+  color: #6366f1;
+  border: 1.5px solid #c7d2fe;
+  font-size: 14px;
+  box-shadow: 0 1px 4px rgba(99, 102, 241, 0.12);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease, transform 0.2s ease, box-shadow 0.15s ease;
+}
+
+#settingsBtn:hover {
+  background: #eef2ff;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
+  transform: rotate(30deg);
+}
+
+#settingsBtn.open {
+  background: #eef2ff;
+  transform: rotate(90deg);
+}
+
+/* ── Settings panel ───────────────────────────────────── */
+#settingsPanel {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(238, 242, 255, 0.97);
+  z-index: 100;
+  box-sizing: border-box;
+  padding: 20px 18px;
+  border-radius: 0;
+  animation: settingsFadeIn 0.18s ease;
+}
+
+#settingsPanel.open {
+  display: block;
+}
+
+@keyframes settingsFadeIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+#settingsCloseBtn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  margin-top: 0;
+  border-radius: 50%;
+  background: #fee2e2;
+  color: #ef4444;
+  border: none;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+#settingsCloseBtn:hover {
+  background: #fecaca;
+  transform: scale(1.1);
+}
+
+#settingsContent h3 {
+  margin: 0 0 14px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e1b4b;
+}
+
+.settings-label {
+  margin: 14px 0 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #6366f1;
+}
+
+.radio-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #1e1b4b;
+  margin-bottom: 6px;
+  cursor: pointer;
+}
+
+.radio-option input[type="radio"] {
+  accent-color: #6366f1;
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
 }
 
 h1 {
@@ -144,7 +262,7 @@ button {
   transform: translateY(-1px);
 }
 
-/* ── Timer view ───────────────────────────────────────── */
+/*  Timer view  */
 #timerView {
   display: none;
   flex-direction: column;
@@ -231,7 +349,7 @@ button {
   transform: translateY(-1px);
 }
 
-/* ── Check-in views ───────────────────────────────────── */
+/*  Check-in views  */
 #checkInView,
 #checkInYesView,
 #checkInNoView {
