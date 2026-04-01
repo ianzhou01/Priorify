@@ -171,6 +171,19 @@ button {
   color: #1e1b4b;
 }
 
+#recommendationMeta {
+  margin: 4px 0 0;
+  font-size: 11px;
+  color: #6b7280;
+}
+
+#recommendationRationale {
+  margin: 3px 0 0;
+  font-size: 11px;
+  font-style: italic;
+  color: #6366f1;
+}
+
 /* ── Tasks container ──────────────────────────────────── */
 #tasksContainer {
   display: grid;

@@ -118,13 +118,19 @@ function renderTasks() {
 
     // new recommendation logic
     const bestTask = getBestTask(inProgress);
-    const recText = document.getElementById("recommendationText");
+    const recText = document.getElementById('recommendationText');
+    const recMeta = document.getElementById('recommendationMeta');
+    const recRationale = document.getElementById('recommendationRationale');
 
     if (recText) {
       if (bestTask) {
-        recText.textContent = `Start: ${bestTask.title}`;
+        recText.textContent = bestTask.title;
+        if (recMeta)      recMeta.textContent      = getRecMeta(bestTask);
+        if (recRationale) recRationale.textContent = getRecRationale(bestTask);
       } else {
-        recText.textContent = "No tasks available";
+        recText.textContent = 'No tasks available';
+        if (recMeta)      recMeta.textContent      = '';
+        if (recRationale) recRationale.textContent = '';
       }
     }
     const completed = tasks.filter(t => t.status_completed);
@@ -423,6 +429,43 @@ function computeEnergy(difficulty) {
     'Hard': 0.9
   };
   return map[difficulty] || 0.5;
+}
+
+function formatDueDate(dateStr) {
+  const now = new Date();
+  const due = new Date(dateStr);
+  const diffDays = Math.round((due - now) / (1000 * 60 * 60 * 24));
+
+  if (diffDays <= 0) return 'Due today';
+  if (diffDays === 1) return 'Due tomorrow';
+  return `Due in ${diffDays} day${diffDays !== 1 ? 's' : ''}`;
+}
+
+function getRecMeta(task) {
+  const timeLabel = { '15': '15 min', '30': '30 min', '60': '1 hr', '120': '2 hrs', '240': '4+ hrs' }[task.time] || `${task.time} min`;
+  const difficultyEmoji = { Hard: '🔴', Medium: '🟡', Easy: '🟢' }[task.difficulty] || '';
+  return `${formatDueDate(task.date)} • ${timeLabel} • ${difficultyEmoji} ${task.difficulty}`;
+}
+
+function getRecRationale(task) {
+  const urgency = computeUrgency(task.date);
+  const effort = computeEffort(task.time);
+  const energy = computeEnergy(task.difficulty);
+
+  const parts = [];
+
+  if (urgency > 0.7)       parts.push('High urgency');
+  else if (urgency > 0.35) parts.push('Moderate urgency');
+  else                     parts.push('Low urgency');
+
+  if (effort < 0.4)        parts.push('quick win');
+  else if (effort < 0.7)   parts.push('manageable effort');
+  else                     parts.push('heavy lift');
+
+  if (energy > 0.7)        parts.push('high energy needed');
+  else if (energy > 0.4)   parts.push('moderate focus');
+
+  return parts.join(' + ');
 }
 
 function scoreTask(task) {
