@@ -8,12 +8,12 @@ function computeUrgency(date) {
   return Math.exp(-diffDays / 4); // Added exponential decay to increase sensitivity near deadlines
 }
 
-function computeEffort(time) {
+function computeLength(time) {
   const map = { '15': 0.2, '30': 0.4, '60': 0.6, '120': 0.8, '240': 1 };
   return map[time] || 0.5;
 }
 
-function computeEnergy(difficulty) {
+function computeEffort(difficulty) {
   const map = { 'Easy': 0.2, 'Medium': 0.5, 'Hard': 0.9 };
   return map[difficulty] || 0.5;
 }
@@ -21,22 +21,22 @@ function computeEnergy(difficulty) {
 //  Weighted scoring 
 
 const SCORE_WEIGHTS = {
-  urgent:   { urgency: 0.8, effort: 0.1, energy: 0.1 },
-  easy:     { urgency: 0.2, effort: 0.6, energy: 0.2 },
-  balanced: { urgency: 0.5, effort: 0.3, energy: 0.2 },
+  urgent:   { urgency: 0.8, length: 0.1, effort: 0.1 },
+  easy:     { urgency: 0.2, length: 0.6, effort: 0.2 },
+  balanced: { urgency: 0.5, length: 0.3, effort: 0.2 },
 };
 
 // mode: 'urgent' | 'easy' | 'balanced'
 function scoreTask(task, mode) {
   const urgency = computeUrgency(task.date);
-  const effort  = computeEffort(task.time);
-  const energy  = computeEnergy(task.difficulty);
+  const length  = computeLength(task.time);
+  const effort  = computeEffort(task.difficulty);
   const w = SCORE_WEIGHTS[mode] || SCORE_WEIGHTS.balanced;
 
   return (
     urgency        * w.urgency +
-    (1 - effort)   * w.effort  +
-    (1 - energy)   * w.energy
+    (1 - length)   * w.length  +
+    (1 - effort)   * w.effort
   );
 }
 
@@ -66,8 +66,8 @@ function getRecMeta(task) {
 
 function getRecRationale(task) {
   const urgency = computeUrgency(task.date);
-  const effort  = computeEffort(task.time);
-  const energy  = computeEnergy(task.difficulty);
+  const effort  = computeLength(task.time);
+  const energy  = computeEffort(task.difficulty);
   const parts   = [];
 
   if (urgency > 0.7)       parts.push('High urgency');
