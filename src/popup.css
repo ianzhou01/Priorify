@@ -1,4 +1,4 @@
-/* ── Base ─────────────────────────────────────────────── */
+/* Base */
 body {
   width: 360px;
   min-height: 520px;
@@ -25,7 +25,7 @@ h1 {
   letter-spacing: 0.5px;
 }
 
-/* ── Button row ───────────────────────────────────────── */
+/* Button row */
 .button-row {
   display: flex;
   width: 100%;
@@ -44,7 +44,7 @@ h1 {
   align-items: stretch;
 }
 
-/* ── Buttons (global) ─────────────────────────────────── */
+/* Buttons (global) */
 button {
   display: flex;
   width: 100%;
@@ -61,7 +61,6 @@ button {
   transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
 }
 
-/* Add button — secondary style */
 #addBtn {
   background: white;
   color: #6366f1;
@@ -75,7 +74,6 @@ button {
   transform: translateY(-1px);
 }
 
-/* Prioritize button — primary gradient */
 #prioritizeBtn {
   background: linear-gradient(135deg, #6366f1, #8b5cf6);
   color: white;
@@ -84,10 +82,17 @@ button {
   position: relative;
 }
 
-#prioritizeBtn:hover {
+#prioritizeBtn:hover:not(:disabled) {
   filter: brightness(1.1);
   box-shadow: 0 5px 16px rgba(99, 102, 241, 0.45);
   transform: translateY(-1px);
+}
+
+#prioritizeBtn:disabled {
+  background: #e5e7eb;
+  color: #9ca3af;
+  box-shadow: none;
+  cursor: not-allowed;
 }
 
 #prioritizeBtn.pressed {
@@ -144,7 +149,7 @@ button {
   font-style: italic;
 }
 
-/* ── Recommendation box ───────────────────────────────── */
+/* Recommendation box */
 #recommendationBox {
   margin-top: 12px;
   padding: 12px 14px;
@@ -153,6 +158,17 @@ button {
   text-align: center;
   border-left: 4px solid #6366f1;
   box-shadow: 0 2px 12px rgba(99, 102, 241, 0.1);
+  display: none;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+#recommendationBox.visible {
+  display: block;
+}
+
+#recommendationBox.faded-in {
+  opacity: 1;
 }
 
 #recommendationBox h2 {
@@ -166,25 +182,25 @@ button {
 
 #recommendationText {
   margin: 0;
-  font-size: 14px;
+  font-size: 18px;
   font-weight: 600;
   color: #1e1b4b;
 }
 
 #recommendationMeta {
   margin: 4px 0 0;
-  font-size: 11px;
+  font-size: 14px;
   color: #6b7280;
 }
 
 #recommendationRationale {
   margin: 3px 0 0;
-  font-size: 11px;
+  font-size: 14px;
   font-style: italic;
   color: #6366f1;
 }
 
-/* ── Tasks container ──────────────────────────────────── */
+/* Tasks container */
 #tasksContainer {
   display: grid;
   grid-template-rows: 1fr 1fr;
@@ -232,7 +248,7 @@ button {
   margin: 4px 0;
 }
 
-/* ── Task cards ───────────────────────────────────────── */
+/* Task cards */
 .task-card {
   background: rgba(255, 255, 255, 0.12);
   border: 1px solid rgba(255, 255, 255, 0.18);
@@ -287,7 +303,7 @@ button {
   transform: translateY(-1px);
 }
 
-/* ── Task form ────────────────────────────────────────── */
+/* Task form */
 #taskFormContainer {
   margin-top: 12px;
   width: 100%;
@@ -366,7 +382,7 @@ button {
   transform: translateY(-1px);
 }
 
-/* ── Undo toast ───────────────────────────────────────── */
+/* Undo toast */
 #undoToast {
   position: fixed;
   bottom: 20px;
