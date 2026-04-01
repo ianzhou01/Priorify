@@ -67,12 +67,15 @@ function buildTaskCard(task, isCompleted) {
     card.querySelector('.mark-btn').textContent = isCompleted ? '↩ Unmark' : '✔ Mark Complete';
 
     card.querySelector('.mark-btn').addEventListener('click', function () {
-      loadTasks(function (tasks) {
-        const match = tasks.find(t => t.title === task.title && t.status_completed === isCompleted);
-        if (match) {
-          isCompleted ? match.unmark() : match.mark();
-          saveTasks(tasks, renderTasks);
-        }
+      const label = isCompleted ? 'Task unmarked ↩' : 'Task completed ✓';
+      showUndoToast(label, function doAction() {
+        loadTasks(function (tasks) {
+          const match = tasks.find(t => t.title === task.title && t.status_completed === isCompleted);
+          if (match) {
+            isCompleted ? match.unmark() : match.mark();
+            saveTasks(tasks, renderTasks);
+          }
+        });
       });
     });
 
@@ -409,6 +412,52 @@ function scoreTask(task) {
     (1 - effort) * 0.3 +
     energy * 0.2
   );
+}
+
+// ── Undo toast ──────────────────────────────────────────
+let toastTimer = null;
+let pendingUndo = null;
+
+function showUndoToast(label, doAction) {
+  const toast = document.getElementById('undoToast');
+  const undoBtn = document.getElementById('undoBtn');
+  const msgEl = document.getElementById('undoToastMsg');
+  if (!toast) return;
+
+  // Cancel any in-flight toast and immediately commit its pending action
+  if (toastTimer) {
+    clearTimeout(toastTimer);
+    if (pendingUndo) pendingUndo.commit();
+  }
+
+  msgEl.textContent = label;
+  toast.classList.add('visible');
+
+  pendingUndo = {
+    commit: doAction,
+    cancelled: false
+  };
+
+  const current = pendingUndo;
+
+  undoBtn.onclick = function () {
+    current.cancelled = true;
+    clearTimeout(toastTimer);
+    dismissToast();
+    renderTasks();
+  };
+
+  toastTimer = setTimeout(function () {
+    if (!current.cancelled) current.commit();
+    dismissToast();
+  }, 4000);
+}
+
+function dismissToast() {
+  const toast = document.getElementById('undoToast');
+  if (toast) toast.classList.remove('visible');
+  toastTimer = null;
+  pendingUndo = null;
 }
 
 function getBestTask(tasks) {
