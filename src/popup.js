@@ -114,26 +114,10 @@ function renderTasks() {
     if (!inProgressEl || !completedEl) return;
 
     const inProgress = tasks.filter(t => !t.status_completed);
-    
-
-    // new recommendation logic
-    const bestTask = getBestTask(inProgress);
-    const recText = document.getElementById('recommendationText');
-    const recMeta = document.getElementById('recommendationMeta');
-    const recRationale = document.getElementById('recommendationRationale');
-
-    if (recText) {
-      if (bestTask) {
-        recText.textContent = bestTask.title;
-        if (recMeta)      recMeta.textContent      = getRecMeta(bestTask);
-        if (recRationale) recRationale.textContent = getRecRationale(bestTask);
-      } else {
-        recText.textContent = 'No tasks available';
-        if (recMeta)      recMeta.textContent      = '';
-        if (recRationale) recRationale.textContent = '';
-      }
-    }
     const completed = tasks.filter(t => t.status_completed);
+
+    const pBtn = document.getElementById('prioritizeBtn');
+    if (pBtn) pBtn.disabled = inProgress.length === 0;
 
 
 
@@ -232,6 +216,34 @@ document.addEventListener('DOMContentLoaded', function () {
       pBtn.addEventListener('animationend', () => pBtn.classList.remove('pressed'), { once: true });
 
       renderTasks();
+
+      // Update recommendation box
+      loadTasks(function (tasks) {
+        const inProgress = tasks.filter(t => !t.status_completed);
+        const bestTask = getBestTask(inProgress);
+        const box = document.getElementById('recommendationBox');
+        const recText = document.getElementById('recommendationText');
+        const recMeta = document.getElementById('recommendationMeta');
+        const recRationale = document.getElementById('recommendationRationale');
+
+        if (!box || !recText) return;
+
+        if (bestTask) {
+          recText.textContent = bestTask.title;
+          if (recMeta)      recMeta.textContent      = getRecMeta(bestTask);
+          if (recRationale) recRationale.textContent = getRecRationale(bestTask);
+        } else {
+          recText.textContent = 'No tasks available';
+          if (recMeta)      recMeta.textContent      = '';
+          if (recRationale) recRationale.textContent = '';
+        }
+
+        // Reveal with fade on first click; just update content on subsequent clicks
+        if (!box.classList.contains('visible')) {
+          box.classList.add('visible');
+          requestAnimationFrame(() => box.classList.add('faded-in'));
+        }
+      });
     });
   }
 
