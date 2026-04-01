@@ -80,12 +80,44 @@ button {
   background: linear-gradient(135deg, #6366f1, #8b5cf6);
   color: white;
   box-shadow: 0 3px 10px rgba(99, 102, 241, 0.35);
+  overflow: hidden; /* clips the ripple */
+  position: relative;
 }
 
 #prioritizeBtn:hover {
   filter: brightness(1.1);
   box-shadow: 0 5px 16px rgba(99, 102, 241, 0.45);
   transform: translateY(-1px);
+}
+
+#prioritizeBtn.pressed {
+  animation: btnSpring 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+
+@keyframes btnSpring {
+  0%   { transform: scale(1)    translateY(0); }
+  25%  { transform: scale(0.92) translateY(2px); }
+  55%  { transform: scale(1.05) translateY(-2px); }
+  75%  { transform: scale(0.98) translateY(1px); }
+  100% { transform: scale(1)    translateY(0); }
+}
+
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  width: 6px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.55);
+  transform: translate(-50%, -50%) scale(0);
+  animation: rippleExpand 0.55s ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes rippleExpand {
+  to {
+    transform: translate(-50%, -50%) scale(40);
+    opacity: 0;
+  }
 }
 
 /* Start button */
