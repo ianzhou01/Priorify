@@ -153,11 +153,6 @@ button:hover {
   background-color: rgba(255, 255, 255, 0.5);
 }
 
-.algorithm-display {
-  text-align: center;
-  font-size: 12px;
-}
-
 /* Task Card */
 .task-card {
   background: rgba(255, 255, 255, 0.15);
@@ -189,4 +184,22 @@ button:hover {
  
 .mark-btn:hover {
   background: rgba(255, 255, 255, 0.4);
+}
+
+#recommendationBox {
+  margin-top: 10px;
+  padding: 10px;
+  background: white;
+  border-radius: 6px;
+  text-align: center;
+}
+
+#recommendationBox h2 {
+  margin: 0;
+  font-size: 16px;
+}
+
+#recommendationText {
+  margin: 6px 0;
+  font-weight: bold;
 }
