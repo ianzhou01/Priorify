@@ -134,11 +134,100 @@ button {
   font-size: 12px;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+  overflow: hidden;
+  position: relative;
 }
 
 #startBtn:hover {
   filter: brightness(1.1);
   box-shadow: 0 4px 14px rgba(16, 185, 129, 0.45);
+  transform: translateY(-1px);
+}
+
+/* ── Timer view ───────────────────────────────────────── */
+#timerView {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 28px 18px;
+  text-align: center;
+}
+
+#timerView.active {
+  display: flex;
+}
+
+#timerLabel {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #6366f1;
+}
+
+#timerTaskName {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: #1e1b4b;
+}
+
+#timerDisplay {
+  font-size: 48px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #1e1b4b;
+  font-variant-numeric: tabular-nums;
+  margin: 8px 0;
+}
+
+#timerDisplay.paused {
+  opacity: 0.45;
+}
+
+.timer-buttons {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  margin-top: 4px;
+}
+
+#pauseBtn {
+  flex: 1;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+  border-radius: 10px;
+  margin-top: 0;
+  font-size: 13px;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+  overflow: hidden;
+  position: relative;
+}
+
+#pauseBtn:hover {
+  filter: brightness(1.1);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.45);
+  transform: translateY(-1px);
+}
+
+#giveUpBtn {
+  flex: 1;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+  border-radius: 10px;
+  margin-top: 0;
+  font-size: 13px;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+  overflow: hidden;
+  position: relative;
+}
+
+#giveUpBtn:hover {
+  filter: brightness(1.1);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.45);
   transform: translateY(-1px);
 }
 

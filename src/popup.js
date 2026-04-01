@@ -119,8 +119,6 @@ function renderTasks() {
     const pBtn = document.getElementById('prioritizeBtn');
     if (pBtn) pBtn.disabled = inProgress.length === 0;
 
-
-
     inProgressEl.innerHTML = '<h2>In Progress</h2>';
     if (inProgress.length === 0) {
       inProgressEl.innerHTML += '<p>Tasks in progress will appear here.</p>';
@@ -200,14 +198,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   if (pBtn) {
     pBtn.addEventListener('click', function (e) {
-      // Ripple from click position
-      const ripple = document.createElement('span');
-      ripple.classList.add('ripple');
-      const rect = pBtn.getBoundingClientRect();
-      ripple.style.left = (e.clientX - rect.left) + 'px';
-      ripple.style.top  = (e.clientY - rect.top)  + 'px';
-      pBtn.appendChild(ripple);
-      ripple.addEventListener('animationend', () => ripple.remove());
+      fireRipple(pBtn, e);
 
       // Spring bounce
       pBtn.classList.remove('pressed');
@@ -244,6 +235,31 @@ document.addEventListener('DOMContentLoaded', function () {
           requestAnimationFrame(() => box.classList.add('faded-in'));
         }
       });
+    });
+  }
+
+  const sBtn = document.getElementById('startBtn');
+  if (sBtn) {
+    sBtn.addEventListener('click', function (e) {
+      fireRipple(sBtn, e);
+      const taskName = document.getElementById('recommendationText').textContent;
+      startTimer(taskName);
+    });
+  }
+
+  const pauseBtn = document.getElementById('pauseBtn');
+  if (pauseBtn) {
+    pauseBtn.addEventListener('click', function (e) {
+      fireRipple(pauseBtn, e);
+      togglePause();
+    });
+  }
+
+  const giveUpBtn = document.getElementById('giveUpBtn');
+  if (giveUpBtn) {
+    giveUpBtn.addEventListener('click', function (e) {
+      fireRipple(giveUpBtn, e);
+      stopTimer();
     });
   }
 
@@ -527,6 +543,72 @@ function dismissToast() {
   if (toast) toast.classList.remove('visible');
   toastTimer = null;
   pendingUndo = null;
+}
+
+// ── Ripple helper ────────────────────────────────────────
+function fireRipple(btn, e) {
+  const ripple = document.createElement('span');
+  ripple.classList.add('ripple');
+  const rect = btn.getBoundingClientRect();
+  ripple.style.left = (e.clientX - rect.left) + 'px';
+  ripple.style.top  = (e.clientY - rect.top)  + 'px';
+  btn.appendChild(ripple);
+  ripple.addEventListener('animationend', () => ripple.remove());
+}
+
+// ── Timer ─────────────────────────────────────────────────
+const TIMER_DURATION = 25 * 60; // seconds
+let timerInterval = null;
+let timerSecondsLeft = TIMER_DURATION;
+let timerPaused = false;
+
+function startTimer(taskName) {
+  timerSecondsLeft = TIMER_DURATION;
+  timerPaused = false;
+
+  document.getElementById('timerTaskName').textContent = taskName;
+  updateTimerDisplay();
+
+  // Hide main UI, show timer
+  document.querySelector('.container').style.display    = 'none';
+  document.getElementById('recommendationBox').style.display = 'none';
+  document.getElementById('tasksContainer').style.display    = 'none';
+  document.getElementById('timerView').classList.add('active');
+  document.getElementById('pauseBtn').textContent = '⏸ Pause';
+  document.getElementById('timerDisplay').classList.remove('paused');
+
+  clearInterval(timerInterval);
+  timerInterval = setInterval(function () {
+    if (timerPaused) return;
+    timerSecondsLeft--;
+    updateTimerDisplay();
+    if (timerSecondsLeft <= 0) stopTimer();
+  }, 1000);
+}
+
+function togglePause() {
+  timerPaused = !timerPaused;
+  document.getElementById('pauseBtn').textContent = timerPaused ? '▶ Resume' : '⏸ Pause';
+  document.getElementById('timerDisplay').classList.toggle('paused', timerPaused);
+}
+
+function stopTimer() {
+  clearInterval(timerInterval);
+  timerInterval = null;
+
+  // Restore main UI
+  document.getElementById('timerView').classList.remove('active');
+  document.querySelector('.container').style.display    = '';
+  document.getElementById('tasksContainer').style.display    = '';
+  // Recommendation box only shows if it was visible before
+  const box = document.getElementById('recommendationBox');
+  if (box.classList.contains('visible')) box.style.display = '';
+}
+
+function updateTimerDisplay() {
+  const m = String(Math.floor(timerSecondsLeft / 60)).padStart(2, '0');
+  const s = String(timerSecondsLeft % 60).padStart(2, '0');
+  document.getElementById('timerDisplay').textContent = `${m}:${s}`;
 }
 
 function getBestTask(tasks) {
