@@ -1,8 +1,6 @@
 // Since we are going to use only one logic JS script
 // Make sure to use if (exists) for buttons and other things so we don't get errors
 
-const algoDisplay = document.getElementById('algoText');
-
 // Task class definition
 class Task {
   constructor(_title, _date, _time, _difficulty) {
@@ -139,29 +137,6 @@ function renderTasks() {
   });
 }
 
-function applySorting(org) {
-  const algoNames = {
-    0: "Unprioritized",
-    1: "Earliest Deadline",
-    2: "Easiest Difficulty",
-    3: "Hardest Difficulty",
-    4: "Fluctuating Times",
-    5: "Randomly Prioritized"
-  };
-
-  if (algoDisplay) {
-    algoDisplay.textContent = algoNames[org] || "Unprioritized";
-  }
-
-  switch (org) {
-    case 1: loadTasks(tasks => sortByDate(tasks, renderTasks)); break;
-    case 2: loadTasks(tasks => sortByDifficulty(tasks, renderTasks)); break;
-    case 3: loadTasks(tasks => sortByInverseDifficulty(tasks, renderTasks)); break;
-    case 4: loadTasks(tasks => sortByFluctuatingTimes(tasks, renderTasks)); break;
-    case 5: loadTasks(tasks => sortByRandom(tasks, renderTasks)); break;
-    default: renderTasks(); break;
-  }
-}
 
 document.addEventListener('DOMContentLoaded', function () {
   if (window.location.pathname.includes('popup.html')) {
@@ -177,7 +152,7 @@ document.addEventListener('DOMContentLoaded', function () {
         chrome.storage.local.get('priorify_timer', function (result) {
           if (result.priorify_timer && result.priorify_timer.expired) {
             chrome.storage.local.set({ priorify_timer: { running: false } });
-            showOnly('checkInView');
+            switchView('checkInView');
           } else {
             renderTasks();
           }
@@ -300,69 +275,12 @@ document.addEventListener('DOMContentLoaded', function () {
     if (el) el.addEventListener('click', function (e) { fireRipple(el, e); fn(); });
   }
 
-  rippleWire('checkInYes',      () => showOnly('checkInYesView'));
-  rippleWire('checkInNo',       () => showOnly('checkInNoView'));
+  rippleWire('checkInYes',      () => switchView('checkInYesView'));
+  rippleWire('checkInNo',       () => switchView('checkInNoView'));
   rippleWire('continueBtn',     () => startTimer(currentTaskTitle, _currentDuration));
   rippleWire('newRecBtn',       () => showNewRecommendation(currentTaskTitle));
   rippleWire('tryShortBtn',     () => startTimer(currentTaskTitle, TIMER_SHORT));
   rippleWire('suggestOtherBtn', () => showNewRecommendation(currentTaskTitle));
-
-  // algo.html logic
-  const a1Btn = document.getElementById('a1Btn');
-  const a2Btn = document.getElementById('a2Btn');
-  const a3Btn = document.getElementById('a3Btn');
-  const a4Btn = document.getElementById('a4Btn');
-  const a5Btn = document.getElementById('a5Btn');
-  const a6Btn = document.getElementById('a6Btn');
-
-  if (a1Btn) {
-    a1Btn.addEventListener('click', function () {
-      chrome.storage.local.set({ currentOrganization: 1 });
-      chrome.storage.local.set({ algorithmChoice: 1 });
-      window.location.href = 'popup.html';
-    });
-  }
-
-  if (a2Btn) {
-    a2Btn.addEventListener('click', function () {
-      chrome.storage.local.set({ currentOrganization: 2 });
-      chrome.storage.local.set({ algorithmChoice: 2 });
-      window.location.href = 'popup.html';
-    });
-  }
-
-  if (a3Btn) {
-    a3Btn.addEventListener('click', function () {
-      chrome.storage.local.set({ currentOrganization: 3 });
-      chrome.storage.local.set({ algorithmChoice: 3 });
-      window.location.href = 'popup.html';
-    });
-  }
-
-  if (a4Btn) {
-    a4Btn.addEventListener('click', function () {
-      chrome.storage.local.set({ currentOrganization: 4 });
-      chrome.storage.local.set({ algorithmChoice: 4 });
-      window.location.href = 'popup.html';
-    });
-  }
-
-  if (a5Btn) {
-    a5Btn.addEventListener('click', function () {
-      chrome.storage.local.set({ currentOrganization: 5 });
-      chrome.storage.local.set({ algorithmChoice: 5 });
-      window.location.href = 'popup.html';
-    });
-  }
-
-  if (a6Btn) {
-    a6Btn.addEventListener('click', function () {
-      let r = Math.floor(Math.random() * 6) + 1;
-      chrome.storage.local.set({ currentOrganization: r });
-      chrome.storage.local.set({ algorithmChoice: r });
-      window.location.href = 'popup.html';
-    });
-  }
 
   // taskform.html logic
   const taskForm = document.getElementById('taskForm');
@@ -423,58 +341,8 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 });
 
-function sortByDate(tasks, callback) {
-  tasks.sort((a, b) => {
-    const dateA = new Date(a.date);
-    const dateB = new Date(b.date);
-    return dateA - dateB;
-  });
 
-  saveTasks(tasks, callback);
-}
-
-function sortByDifficulty(tasks, callback) {
-  const difficultyOrder = { 'Easy': 1, 'Medium': 2, 'Hard': 3 };
-  tasks.sort((a, b) => difficultyOrder[a.difficulty] - difficultyOrder[b.difficulty]);
-
-  saveTasks(tasks, callback);
-}
-
-function sortByInverseDifficulty(tasks, callback) {
-  const difficultyOrder = { 'Easy': 1, 'Medium': 2, 'Hard': 3 };
-  tasks.sort((a, b) => difficultyOrder[b.difficulty] - difficultyOrder[a.difficulty]);
-
-  saveTasks(tasks, callback);
-}
-
-function sortByTime(tasks, callback) {
-  const timeOrder = { '15': 1, '30': 2, '60': 3, '120': 4, '240': 5 };
-  tasks.sort((a, b) => timeOrder[a.time] - timeOrder[b.time]);
-
-  saveTasks(tasks, callback);
-}
-
-function sortByFluctuatingTimes(tasks, callback) {
-  const timeOrder = { '15': 1, '30': 2, '60': 3, '120': 4, '240': 5 };
-  tasks.sort((a, b) => timeOrder[a.time] - timeOrder[b.time]);
-  let result = [];
-  while (tasks.length > 0) {
-    result.push(tasks.shift());
-    if (tasks.length > 0) {
-      result.push(tasks.pop());
-    }
-  }
-  saveTasks(result, callback);
-}
-
-function sortByRandom(tasks, callback) {
-  tasks.sort(() => Math.random() - 0.5);
-
-  saveTasks(tasks, callback);
-}
-
-
-// ── Settings ──────────────────────────────────────────────
+//  Settings 
 const DEFAULT_SETTINGS = { priority: 'balanced', duration: 1500 };
 
 function loadSettings(callback) {
@@ -519,7 +387,6 @@ function _applySettingsCache(settings) {
 
 // Undo Toast
 let toastTimer = null;
-let pendingUndo = null;
 
 function showUndoToast(label, doUndo) {
   const toast = document.getElementById('undoToast');
@@ -536,8 +403,6 @@ function showUndoToast(label, doUndo) {
   msgEl.textContent = label;
   toast.classList.add('visible');
 
-  pendingUndo = doUndo;
-
   undoBtn.onclick = function () {
     clearTimeout(toastTimer);
     dismissToast();
@@ -551,7 +416,6 @@ function dismissToast() {
   const toast = document.getElementById('undoToast');
   if (toast) toast.classList.remove('visible');
   toastTimer = null;
-  pendingUndo = null;
 }
 
 // Ripple helper 
@@ -565,40 +429,35 @@ function fireRipple(btn, e) {
   ripple.addEventListener('animationend', () => ripple.remove());
 }
 
-// ── Timer ─────────────────────────────────────────────────
-const TIMER_SHORT = 10 * 60;
+//  Timer 
+const TIMER_SHORT = 10 * 60; // Used for "Try Shorter" option on check-in screen
 let currentTaskTitle = '';
 let tickInterval = null;
 
 const MAIN_IDS = ['.container', '#recommendationBox', '#tasksContainer'];
 const FLOW_IDS = ['#timerView', '#checkInView', '#checkInYesView', '#checkInNoView'];
 
-function showOnly(activeId) {
-  FLOW_IDS.forEach(id => {
-    const el = document.getElementById(id.replace('#', ''));
+function switchView(id) {
+  FLOW_IDS.forEach(flowId => {
+    const el = document.getElementById(flowId.replace('#', ''));
     if (el) el.classList.remove('active');
   });
-  MAIN_IDS.forEach(sel => {
-    const el = sel.startsWith('#')
-      ? document.getElementById(sel.replace('#', ''))
-      : document.querySelector(sel);
-    if (el) el.style.display = 'none';
-  });
-  if (activeId) {
-    const el = document.getElementById(activeId);
+
+  if (id === 'main') {
+    document.querySelector('.container').style.display = '';
+    document.getElementById('tasksContainer').style.display = '';
+    const box = document.getElementById('recommendationBox');
+    if (box && box.classList.contains('visible')) box.style.display = '';
+  } else {
+    MAIN_IDS.forEach(sel => {
+      const el = sel.startsWith('#')
+        ? document.getElementById(sel.replace('#', ''))
+        : document.querySelector(sel);
+      if (el) el.style.display = 'none';
+    });
+    const el = document.getElementById(id);
     if (el) el.classList.add('active');
   }
-}
-
-function showMain() {
-  FLOW_IDS.forEach(id => {
-    const el = document.getElementById(id.replace('#', ''));
-    if (el) el.classList.remove('active');
-  });
-  document.querySelector('.container').style.display = '';
-  document.getElementById('tasksContainer').style.display = '';
-  const box = document.getElementById('recommendationBox');
-  if (box.classList.contains('visible')) box.style.display = '';
 }
 
 function renderTimerView(taskName, secondsLeft, paused) {
@@ -607,7 +466,7 @@ function renderTimerView(taskName, secondsLeft, paused) {
   document.getElementById('pauseBtn').textContent = paused ? '▶ Resume' : '⏸ Pause';
   document.getElementById('timerDisplay').classList.toggle('paused', paused);
   setTimerDisplay(secondsLeft);
-  showOnly('timerView');
+  switchView('timerView');
 }
 
 function setTimerDisplay(secondsLeft) {
@@ -623,7 +482,7 @@ function startTick() {
     chrome.runtime.sendMessage({ type: 'GET_STATE' }, function (state) {
       if (!state || !state.running) {
         clearInterval(tickInterval);
-        showOnly('checkInView');
+        switchView('checkInView');
         return;
       }
       if (!state.paused) setTimerDisplay(state.secondsLeft);
@@ -652,7 +511,7 @@ function togglePause() {
 function stopTimer() {
   chrome.runtime.sendMessage({ type: 'STOP_TIMER' });
   clearInterval(tickInterval);
-  showOnly('checkInView');
+  switchView('checkInView');
 }
 
 function showNewRecommendation(excludeTitle) {
@@ -664,7 +523,7 @@ function showNewRecommendation(excludeTitle) {
     const recMeta = document.getElementById('recommendationMeta');
     const recRationale = document.getElementById('recommendationRationale');
 
-    showMain();
+    switchView('main');
     renderTasks();
 
     if (bestTask) {
