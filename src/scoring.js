@@ -80,6 +80,7 @@ function getRecRationale(task) {
 
   if (energy > 0.7)        parts.push('high energy needed');
   else if (energy > 0.4)   parts.push('moderate focus');
+  else                     parts.push('low energy needed');
 
   return parts.join(' + ');
 }
