@@ -3,13 +3,13 @@ chrome.runtime.onInstalled.addListener(function () {
   chrome.storage.local.set({ algorithmChoice: Math.floor(Math.random() * 5) + 1 });
 });
 
-// ── Timer state ───────────────────────────────────────────
+//  Timer state 
 // Persisted in chrome.storage.local so it survives service worker sleep:
 //   priorify_timer: { taskName, endsAt, pausedAt, secondsLeft, running }
 //
-// endsAt    — epoch ms when the alarm should fire (set when running)
-// pausedAt  — epoch ms when pause was pressed (set when paused, else null)
-// secondsLeft — authoritative remaining seconds (updated on pause/stop)
+// endsAt:      epoch ms when the alarm should fire (set when running)
+// pausedAt:    epoch ms when pause was pressed (set when paused, else null)
+// secondsLeft: authoritative remaining seconds (updated on pause/stop)
 
 const ALARM_NAME = 'priorify_timer';
 
@@ -74,7 +74,7 @@ function getState(sendResponse) {
   });
 }
 
-// ── Message handler ───────────────────────────────────────
+//  Message handler 
 chrome.runtime.onMessage.addListener(function (msg, _sender, sendResponse) {
   if (msg.type === 'START_TIMER') startTimer(msg.taskName, msg.duration);
   if (msg.type === 'PAUSE_TIMER') pauseTimer();
@@ -82,7 +82,7 @@ chrome.runtime.onMessage.addListener(function (msg, _sender, sendResponse) {
   if (msg.type === 'GET_STATE')   { getState(sendResponse); return true; }
 });
 
-// ── Alarm fired = timer expired ───────────────────────────
+//  Alarm fired = timer expired 
 chrome.alarms.onAlarm.addListener(function (alarm) {
   if (alarm.name !== ALARM_NAME) return;
   chrome.storage.local.set({ priorify_timer: { running: false, expired: true } });
