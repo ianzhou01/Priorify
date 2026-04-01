@@ -320,3 +320,57 @@ button {
   background: rgba(255, 255, 255, 0.35);
   transform: translateY(-1px);
 }
+
+/* ── Undo toast ───────────────────────────────────────── */
+#undoToast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(12px);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #1e1b4b;
+  color: white;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 10px 16px;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  white-space: nowrap;
+  z-index: 999;
+}
+
+#undoToast.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
+}
+
+#undoBtn {
+  all: unset;
+  font-size: 12px;
+  font-weight: 700;
+  color: #a5b4fc;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: color 0.15s ease;
+  width: auto;
+  margin-top: 0;
+  background: none;
+  box-shadow: none;
+}
+
+#undoBtn:hover {
+  color: white;
+  transform: none;
+  filter: none;
+  box-shadow: none;
+  background: none;
+}
