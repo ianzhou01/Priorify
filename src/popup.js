@@ -263,6 +263,19 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+  // Check-in screen buttons
+  function rippleWire(id, fn) {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('click', function (e) { fireRipple(el, e); fn(); });
+  }
+
+  rippleWire('checkInYes',      () => showOnly('checkInYesView'));
+  rippleWire('checkInNo',       () => showOnly('checkInNoView'));
+  rippleWire('continueBtn',     () => startTimer(currentTaskTitle, TIMER_DURATION));
+  rippleWire('newRecBtn',       () => showNewRecommendation(currentTaskTitle));
+  rippleWire('tryShortBtn',     () => startTimer(currentTaskTitle, TIMER_SHORT));
+  rippleWire('suggestOtherBtn', () => showNewRecommendation(currentTaskTitle));
+
   // algo.html logic
   const a1Btn = document.getElementById('a1Btn');
   const a2Btn = document.getElementById('a2Btn');
@@ -558,22 +571,51 @@ function fireRipple(btn, e) {
 
 // ── Timer ─────────────────────────────────────────────────
 const TIMER_DURATION = 25 * 60; // seconds
+const TIMER_SHORT    = 10 * 60;
 let timerInterval = null;
 let timerSecondsLeft = TIMER_DURATION;
 let timerPaused = false;
+let currentTaskTitle = '';
 
-function startTimer(taskName) {
-  timerSecondsLeft = TIMER_DURATION;
+const MAIN_IDS = ['.container', '#recommendationBox', '#tasksContainer'];
+const FLOW_IDS = ['#timerView', '#checkInView', '#checkInYesView', '#checkInNoView'];
+
+function showOnly(activeId) {
+  FLOW_IDS.forEach(id => {
+    const el = document.getElementById(id.replace('#', ''));
+    if (el) el.classList.remove('active');
+  });
+  MAIN_IDS.forEach(sel => {
+    const el = sel.startsWith('#')
+      ? document.getElementById(sel.replace('#', ''))
+      : document.querySelector(sel);
+    if (el) el.style.display = 'none';
+  });
+  if (activeId) {
+    const el = document.getElementById(activeId);
+    if (el) el.classList.add('active');
+  }
+}
+
+function showMain() {
+  FLOW_IDS.forEach(id => {
+    const el = document.getElementById(id.replace('#', ''));
+    if (el) el.classList.remove('active');
+  });
+  document.querySelector('.container').style.display = '';
+  document.getElementById('tasksContainer').style.display = '';
+  const box = document.getElementById('recommendationBox');
+  if (box.classList.contains('visible')) box.style.display = '';
+}
+
+function startTimer(taskName, duration) {
+  currentTaskTitle = taskName;
+  timerSecondsLeft = duration || TIMER_DURATION;
   timerPaused = false;
 
   document.getElementById('timerTaskName').textContent = taskName;
   updateTimerDisplay();
-
-  // Hide main UI, show timer
-  document.querySelector('.container').style.display    = 'none';
-  document.getElementById('recommendationBox').style.display = 'none';
-  document.getElementById('tasksContainer').style.display    = 'none';
-  document.getElementById('timerView').classList.add('active');
+  showOnly('timerView');
   document.getElementById('pauseBtn').textContent = '⏸ Pause';
   document.getElementById('timerDisplay').classList.remove('paused');
 
@@ -595,20 +637,36 @@ function togglePause() {
 function stopTimer() {
   clearInterval(timerInterval);
   timerInterval = null;
-
-  // Restore main UI
-  document.getElementById('timerView').classList.remove('active');
-  document.querySelector('.container').style.display    = '';
-  document.getElementById('tasksContainer').style.display    = '';
-  // Recommendation box only shows if it was visible before
-  const box = document.getElementById('recommendationBox');
-  if (box.classList.contains('visible')) box.style.display = '';
+  showOnly('checkInView');
 }
 
 function updateTimerDisplay() {
   const m = String(Math.floor(timerSecondsLeft / 60)).padStart(2, '0');
   const s = String(timerSecondsLeft % 60).padStart(2, '0');
   document.getElementById('timerDisplay').textContent = `${m}:${s}`;
+}
+
+function showNewRecommendation(excludeTitle) {
+  loadTasks(function (tasks) {
+    const inProgress = tasks.filter(t => !t.status_completed && t.title !== excludeTitle);
+    const bestTask = getBestTask(inProgress);
+    const box = document.getElementById('recommendationBox');
+    const recText = document.getElementById('recommendationText');
+    const recMeta = document.getElementById('recommendationMeta');
+    const recRationale = document.getElementById('recommendationRationale');
+
+    showMain();
+    renderTasks();
+
+    if (bestTask) {
+      recText.textContent = bestTask.title;
+      if (recMeta)      recMeta.textContent      = getRecMeta(bestTask);
+      if (recRationale) recRationale.textContent = getRecRationale(bestTask);
+      box.classList.add('visible');
+      box.style.display = '';
+      requestAnimationFrame(() => box.classList.add('faded-in'));
+    }
+  });
 }
 
 function getBestTask(tasks) {

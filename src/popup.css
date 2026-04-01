@@ -231,6 +231,101 @@ button {
   transform: translateY(-1px);
 }
 
+/* ── Check-in views ───────────────────────────────────── */
+#checkInView,
+#checkInYesView,
+#checkInNoView {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 36px 18px;
+  text-align: center;
+}
+
+#checkInView.active,
+#checkInYesView.active,
+#checkInNoView.active {
+  display: flex;
+}
+
+#checkInHeading,
+#checkInYesHeading,
+#checkInNoHeading {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #1e1b4b;
+}
+
+.checkin-buttons {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+.checkin-buttons button {
+  flex: 1;
+  margin-top: 0;
+  border-radius: 10px;
+  font-size: 13px;
+  overflow: hidden;
+  position: relative;
+}
+
+#checkInYes {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+#checkInYes:hover {
+  filter: brightness(1.1);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.45);
+  transform: translateY(-1px);
+}
+
+#checkInNo {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+}
+
+#checkInNo:hover {
+  filter: brightness(1.1);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.45);
+  transform: translateY(-1px);
+}
+
+#continueBtn,
+#tryShortBtn {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+}
+
+#continueBtn:hover,
+#tryShortBtn:hover {
+  filter: brightness(1.1);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.45);
+  transform: translateY(-1px);
+}
+
+#newRecBtn,
+#suggestOtherBtn {
+  background: white;
+  color: #6366f1;
+  border: 1.5px solid #c7d2fe;
+  box-shadow: 0 1px 4px rgba(99, 102, 241, 0.08);
+}
+
+#newRecBtn:hover,
+#suggestOtherBtn:hover {
+  background: #eef2ff;
+  box-shadow: 0 3px 10px rgba(99, 102, 241, 0.15);
+  transform: translateY(-1px);
+}
+
 .underBtn {
   margin-top: 4px;
   font-size: 11px;
