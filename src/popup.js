@@ -67,14 +67,22 @@ function buildTaskCard(task, isCompleted) {
     card.querySelector('.mark-btn').textContent = isCompleted ? '↩ Unmark' : '✔ Mark Complete';
 
     card.querySelector('.mark-btn').addEventListener('click', function () {
-      const label = isCompleted ? 'Task unmarked ↩' : 'Task completed ✓';
-      showUndoToast(label, function doAction() {
-        loadTasks(function (tasks) {
-          const match = tasks.find(t => t.title === task.title && t.status_completed === isCompleted);
-          if (match) {
-            isCompleted ? match.unmark() : match.mark();
-            saveTasks(tasks, renderTasks);
-          }
+      // Act immediately for responsive UI
+      loadTasks(function (tasks) {
+        const match = tasks.find(t => t.title === task.title && t.status_completed === isCompleted);
+        if (!match) return;
+        isCompleted ? match.unmark() : match.mark();
+        saveTasks(tasks, renderTasks);
+
+        const label = isCompleted ? 'Task unmarked ↩' : 'Task completed ✓';
+        showUndoToast(label, function doUndo() {
+          loadTasks(function (tasks) {
+            const revert = tasks.find(t => t.title === task.title && t.status_completed !== isCompleted);
+            if (revert) {
+              isCompleted ? revert.mark() : revert.unmark();
+              saveTasks(tasks, renderTasks);
+            }
+          });
         });
       });
     });
@@ -414,43 +422,34 @@ function scoreTask(task) {
   );
 }
 
-// ── Undo toast ──────────────────────────────────────────
+// Undo Toast
 let toastTimer = null;
 let pendingUndo = null;
 
-function showUndoToast(label, doAction) {
+function showUndoToast(label, doUndo) {
   const toast = document.getElementById('undoToast');
   const undoBtn = document.getElementById('undoBtn');
   const msgEl = document.getElementById('undoToastMsg');
   if (!toast) return;
 
-  // Cancel any in-flight toast and immediately commit its pending action
+  // Dismiss any existing toast without reversing — its action already committed
   if (toastTimer) {
     clearTimeout(toastTimer);
-    if (pendingUndo) pendingUndo.commit();
+    dismissToast();
   }
 
   msgEl.textContent = label;
   toast.classList.add('visible');
 
-  pendingUndo = {
-    commit: doAction,
-    cancelled: false
-  };
-
-  const current = pendingUndo;
+  pendingUndo = doUndo;
 
   undoBtn.onclick = function () {
-    current.cancelled = true;
     clearTimeout(toastTimer);
     dismissToast();
-    renderTasks();
+    doUndo();
   };
 
-  toastTimer = setTimeout(function () {
-    if (!current.cancelled) current.commit();
-    dismissToast();
-  }, 4000);
+  toastTimer = setTimeout(dismissToast, 4000);
 }
 
 function dismissToast() {
