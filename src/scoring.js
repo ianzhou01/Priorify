@@ -1,4 +1,4 @@
-// ── Raw score components ───────────────────────────────────
+//  Raw score components 
 
 function computeUrgency(date) {
   const now = new Date();
@@ -18,7 +18,7 @@ function computeEnergy(difficulty) {
   return map[difficulty] || 0.5;
 }
 
-// ── Weighted scoring ───────────────────────────────────────
+//  Weighted scoring 
 
 const SCORE_WEIGHTS = {
   urgent:   { urgency: 0.8, effort: 0.1, energy: 0.1 },
@@ -47,7 +47,7 @@ function getBestTask(tasks, mode) {
   );
 }
 
-// ── Recommendation display helpers ────────────────────────
+//  Recommendation display helpers 
 
 function formatDueDate(dateStr) {
   const now = new Date();

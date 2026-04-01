@@ -15,7 +15,7 @@ body {
   position: relative;
 }
 
-/* ── Settings button ──────────────────────────────────── */
+/*  Settings button  */
 #settingsBtn {
   position: absolute;
   top: 0;
@@ -48,7 +48,7 @@ body {
   transform: rotate(90deg);
 }
 
-/* ── Settings panel ───────────────────────────────────── */
+/*  Settings panel  */
 #settingsPanel {
   display: none;
   position: absolute;
