@@ -358,7 +358,7 @@ button {
   font-size: 11px;
   padding: 5px 0;
   width: 100%;
-  margin-top: -4px;
+  margin-top: 4px;
   cursor: pointer;
   position: relative;
   overflow: hidden;
@@ -472,6 +472,12 @@ button {
 }
 
 /* Recommendation box */
+@keyframes recUpdate {
+  0%   { opacity: 1; transform: scale(1)     translateY(0);   }
+  30%  { opacity: 0.45; transform: scale(0.984) translateY(-3px); }
+  100% { opacity: 1; transform: scale(1)     translateY(0);   }
+}
+
 #recommendationBox {
   margin-top: 12px;
   padding: 12px 14px;
@@ -482,7 +488,8 @@ button {
   box-shadow: 0 2px 12px rgba(99, 102, 241, 0.1);
   display: none;
   opacity: 0;
-  transition: opacity 0.25s ease;
+  transform: translateY(10px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
 #recommendationBox.visible {
@@ -491,6 +498,11 @@ button {
 
 #recommendationBox.faded-in {
   opacity: 1;
+  transform: translateY(0);
+}
+
+#recommendationBox.rec-update {
+  animation: recUpdate 0.24s ease-out;
 }
 
 #recHeader {

@@ -616,6 +616,14 @@ function showNewRecommendation(excludeTitle) {
 }
 
 function renderRecBox(best, runner) {
+  const box = document.getElementById('recommendationBox');
+  if (box && box.classList.contains('visible')) {
+    box.classList.remove('rec-update');
+    void box.offsetWidth; // force reflow to restart animation
+    box.classList.add('rec-update');
+    box.addEventListener('animationend', () => box.classList.remove('rec-update'), { once: true });
+  }
+
   document.getElementById('recommendationText').textContent = best.title;
   document.getElementById('recommendationMeta').textContent = getRecMeta(best);
   document.getElementById('recommendationRationale').textContent = getRecSummary(best);
