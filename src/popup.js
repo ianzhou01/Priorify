@@ -51,6 +51,21 @@ function getCardTemplate() {
     });
 }
 
+function resetRecommendationIfMatches(taskTitle) {
+  const recText = document.getElementById('recommendationText');
+  const box = document.getElementById('recommendationBox');
+  if (recText && recText.textContent === taskTitle) {
+    recText.textContent = 'Click Prioritize to get a recommendation';
+    document.getElementById('recommendationMeta').textContent = '';
+    document.getElementById('recommendationRationale').textContent = '';
+    clearRecExplanation();
+    if (box) {
+      box.classList.remove('visible', 'faded-in');
+      box.style.display = 'none';
+    }
+  }
+}
+
 // Build a task card element from a Task object
 function buildTaskCard(task, isCompleted) {
   const difficultyEmoji = { Hard: '🔴', Medium: '🟡', Easy: '🟢' }[task.difficulty] || '';
@@ -71,9 +86,11 @@ function buildTaskCard(task, isCompleted) {
       loadTasks(function (tasks) {
         const match = tasks.find(t => t.title === task.title && t.status_completed === isCompleted);
         if (!match) return;
-        isCompleted ? match.unmark() : match.mark();
-        saveTasks(tasks, renderTasks);
 
+        isCompleted ? match.unmark() : match.mark();
+        saveTasks(tasks, refreshUIAndRecommendation);
+
+        // Show toast for undo
         const label = isCompleted ? 'Task unmarked ↩' : 'Task completed ✓';
         showUndoToast(label, function doUndo() {
           loadTasks(function (tasks) {
@@ -91,21 +108,7 @@ function buildTaskCard(task, isCompleted) {
       if (!confirm(`Delete "${task.title}"?`)) return;
       loadTasks(function (tasks) {
         const updated = tasks.filter(t => !(t.title === task.title && t.status_completed === isCompleted));
-        saveTasks(updated, function () {
-          renderTasks();
-          const recText = document.getElementById('recommendationText');
-          const box = document.getElementById('recommendationBox');
-          if (recText && recText.textContent === task.title) {
-            recText.textContent = 'Click Prioritize to get a recommendation';
-            document.getElementById('recommendationMeta').textContent = '';
-            document.getElementById('recommendationRationale').textContent = '';
-            clearRecExplanation();
-            if (box) {
-              box.classList.remove('visible', 'faded-in');
-              box.style.display = 'none';
-            }
-          }
-        });
+        saveTasks(updated, refreshUIAndRecommendation);
       });
     });
 
@@ -121,38 +124,101 @@ function buildTaskCard(task, isCompleted) {
 
 // Render tasks on popup.html
 function renderTasks() {
-  loadTasks(function (tasks) {
-    const inProgressEl = document.getElementById('inProgress');
-    const completedEl = document.getElementById('completed');
+  return new Promise(resolve => {
+    loadTasks(function (tasks) {
+      const inProgressEl = document.getElementById('inProgress');
+      const completedEl = document.getElementById('completed');
+      if (!inProgressEl || !completedEl) return resolve();
 
-    if (!inProgressEl || !completedEl) return;
+      inProgressEl.innerHTML = '<h2>In Progress</h2>';
+      completedEl.innerHTML = '<h2>Completed</h2>';
+      
+      const inProgress = tasks.filter(t => !t.status_completed);
+      const completed = tasks.filter(t => t.status_completed);
 
-    const inProgress = tasks.filter(t => !t.status_completed);
-    const completed = tasks.filter(t => t.status_completed);
+      const allCards = [
+        ...inProgress.map(task => buildTaskCard(task, false)),
+        ...completed.map(task => buildTaskCard(task, true))
+      ];
 
-    const pBtn = document.getElementById('prioritizeBtn');
-    if (pBtn) pBtn.disabled = inProgress.length === 0;
-
-    inProgressEl.innerHTML = '<h2>In Progress</h2>';
-    if (inProgress.length === 0) {
-      inProgressEl.innerHTML += '<p>Tasks in progress will appear here.</p>';
-    } else {
-      inProgress.forEach(task => {
-        buildTaskCard(task, false).then(card => inProgressEl.appendChild(card));
-      });
-    }
-
-    completedEl.innerHTML = '<h2>Completed</h2>';
-    if (completed.length === 0) {
-      completedEl.innerHTML += '<p>Completed tasks will appear here.</p>';
-    } else {
-      completed.forEach(task => {
-        buildTaskCard(task, true).then(card => completedEl.appendChild(card));
-      });
-    }
+      Promise.all(allCards).then(cards => {
+        inProgress.forEach((t, i) => inProgressEl.appendChild(cards[i]));
+        completed.forEach((t, i) => completedEl.appendChild(cards[i + inProgress.length]));
+        resolve();
+      });    
+    });
   });
 }
 
+function attachPrioritizeHandler() {
+  const pBtn = document.getElementById('prioritizeBtn');
+  if (!pBtn) return;
+
+  // Remove old listeners
+  const parent = pBtn.parentNode;
+  const newPBtn = pBtn.cloneNode(true);
+  parent.replaceChild(newPBtn, pBtn);
+
+  newPBtn.addEventListener('click', function (e) {
+    if (newPBtn.disabled) return; // Prevent clicking greyed-out button
+    fireRipple(newPBtn, e);
+
+    newPBtn.classList.remove('pressed');
+    void newPBtn.offsetWidth;
+    newPBtn.classList.add('pressed');
+    newPBtn.addEventListener('animationend', () => newPBtn.classList.remove('pressed'), { once: true });
+
+    renderTasks();
+
+    loadTasks(function (tasks) {
+      const inProgress = tasks.filter(t => !t.status_completed);
+      const bestTask = getBestTask(inProgress, _currentPriorityMode);
+      const runnerUp = getSecondBestTask(inProgress, _currentPriorityMode, bestTask);
+      const box = document.getElementById('recommendationBox');
+      if (!box) return;
+
+      if (bestTask) renderRecBox(bestTask, runnerUp);
+      else {
+        document.getElementById('recommendationText').textContent = 'No tasks available';
+        document.getElementById('recommendationMeta').textContent = '';
+        document.getElementById('recommendationRationale').textContent = '';
+        clearRecExplanation();
+      }
+
+      if (!box.classList.contains('visible')) {
+        box.classList.add('visible');
+        requestAnimationFrame(() => box.classList.add('faded-in'));
+      }
+    });
+  });
+}
+
+function refreshUIAndRecommendation() {
+  loadTasks(tasks => {
+    renderTasks().then(() => {
+      attachPrioritizeHandler();
+
+      const inProgress = tasks.filter(t => !t.status_completed);
+      const bestTask = getBestTask(inProgress, _currentPriorityMode);
+      const runnerUp = getSecondBestTask(inProgress, _currentPriorityMode, bestTask);
+      const box = document.getElementById('recommendationBox');
+      if (!box) return;
+
+      const pBtn = document.getElementById('prioritizeBtn');
+      if (bestTask) {
+        renderRecBox(bestTask, runnerUp);
+        if (pBtn) { pBtn.disabled = false; pBtn.classList.remove('disabled'); }
+      } else {
+        document.getElementById('recommendationText').textContent = 'No tasks available';
+        document.getElementById('recommendationMeta').textContent = '';
+        document.getElementById('recommendationRationale').textContent = '';
+        clearRecExplanation();
+        box.classList.remove('visible', 'faded-in');
+        if (pBtn) { pBtn.disabled = true; pBtn.classList.add('disabled'); }
+      }
+    });
+  });
+}
 
 document.addEventListener('DOMContentLoaded', function () {
   if (window.location.pathname.includes('popup.html')) {
@@ -336,6 +402,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
       chrome.storage.local.get(['editingTask'], function (result) {
         loadTasks(function (tasks) {
+          // Guardrail: prevent duplicate task titles
+          const isDuplicate = tasks.some(t =>
+            t.title === newTitle && (!result.editingTask || t.title !== result.editingTask.title)
+          );
+          if (isDuplicate) {
+            alert('Task title must be unique. Choose a different name.');
+            return;
+          }
+
           if (result.editingTask) {
             const { title, wasCompleted } = result.editingTask;
             const match = tasks.find(t => t.title === title && t.status_completed === wasCompleted);
