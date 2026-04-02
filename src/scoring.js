@@ -90,7 +90,7 @@ function getRecSummary(task) {
   return parts.length ? parts.join(' · ') : 'top pick';
 }
 
-// ── Comparative explanation ────────────────────────────────
+//  Comparative explanation 
 const IMPORTANCE_LABELS = { 1: 'minimal', 2: 'low', 3: 'moderate', 4: 'high', 5: 'critical' };
 const TIME_LABELS = { '15': '15 min', '30': '30 min', '60': '1 hr', '120': '2 hrs', '240': '4+ hrs' };
 const DIFFICULTY_LABELS = { Easy: 'easy', Medium: 'moderate', Hard: 'hard' };

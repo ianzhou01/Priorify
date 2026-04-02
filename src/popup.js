@@ -262,6 +262,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Reveal with fade on first click; just update content on subsequent clicks
         if (!box.classList.contains('visible')) {
+          box.style.display = '';
           box.classList.add('visible');
           requestAnimationFrame(() => box.classList.add('faded-in'));
         }
@@ -302,6 +303,20 @@ document.addEventListener('DOMContentLoaded', function () {
 
   rippleWire('checkInYes',      () => switchView('checkInYesView'));
   rippleWire('checkInNo',       () => switchView('checkInNoView'));
+  rippleWire('markDoneBtn',     () => {
+    loadTasks(function (tasks) {
+      const match = tasks.find(t => t.title === currentTaskTitle && !t.status_completed);
+      if (match) match.mark();
+      saveTasks(tasks, renderTasks);
+      const box = document.getElementById('recommendationBox');
+      document.getElementById('recommendationText').textContent = 'Click Prioritize to get a recommendation';
+      document.getElementById('recommendationMeta').textContent = '';
+      document.getElementById('recommendationRationale').textContent = '';
+      clearRecExplanation();
+      if (box) { box.classList.remove('visible', 'faded-in'); box.style.display = 'none'; }
+      switchView('main');
+    });
+  });
   rippleWire('continueBtn',     () => startTimer(currentTaskTitle, _currentDuration));
   rippleWire('newRecBtn',       () => showNewRecommendation(currentTaskTitle));
   rippleWire('tryShortBtn',     () => startTimer(currentTaskTitle, TIMER_SHORT));

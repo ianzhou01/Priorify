@@ -349,6 +349,26 @@ button {
   transform: translateY(-1px);
 }
 
+/* Mark as done button (check-in screen) */
+#markDoneBtn {
+  background: none;
+  border: 1.5px solid #bfdbfe;
+  color: #93c5fd;
+  border-radius: 999px;
+  font-size: 11px;
+  padding: 5px 0;
+  width: 100%;
+  margin-top: -4px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+#markDoneBtn:hover {
+  border-color: #93c5fd;
+  color: #60a5fa;
+}
+
 /*  Check-in views  */
 #checkInView,
 #checkInYesView,
