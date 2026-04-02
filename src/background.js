@@ -92,4 +92,11 @@ chrome.alarms.onAlarm.addListener(function (alarm) {
     title: 'Time\'s up!',
     message: 'Your Priorify session is complete. Nice work!'
   });
+  chrome.windows.create({
+    url: chrome.runtime.getURL('src/popup.html'),
+    type: 'popup',
+    width: 400,
+    height: 600,
+    focused: true
+  });
 });
