@@ -88,7 +88,7 @@ function buildTaskCard(task, isCompleted) {
         if (!match) return;
 
         isCompleted ? match.unmark() : match.mark();
-        saveTasks(tasks, refreshUIAndRecommendation);
+        saveTasks(tasks, renderTasks);
 
         // Show toast for undo
         const label = isCompleted ? 'Task unmarked ↩' : 'Task completed ✓';
@@ -108,7 +108,7 @@ function buildTaskCard(task, isCompleted) {
       if (!confirm(`Delete "${task.title}"?`)) return;
       loadTasks(function (tasks) {
         const updated = tasks.filter(t => !(t.title === task.title && t.status_completed === isCompleted));
-        saveTasks(updated, refreshUIAndRecommendation);
+        saveTasks(updated, function () { renderTasks(); resetRecommendationIfMatches(task.title); });
       });
     });
 
@@ -136,6 +136,12 @@ function renderTasks() {
       const inProgress = tasks.filter(t => !t.status_completed);
       const completed = tasks.filter(t => t.status_completed);
 
+      const pBtn = document.getElementById('prioritizeBtn');
+      if (pBtn) {
+        pBtn.disabled = inProgress.length === 0;
+        pBtn.classList.toggle('disabled', inProgress.length === 0);
+      }
+
       const allCards = [
         ...inProgress.map(task => buildTaskCard(task, false)),
         ...completed.map(task => buildTaskCard(task, true))
@@ -150,75 +156,6 @@ function renderTasks() {
   });
 }
 
-function attachPrioritizeHandler() {
-  const pBtn = document.getElementById('prioritizeBtn');
-  if (!pBtn) return;
-
-  // Remove old listeners
-  const parent = pBtn.parentNode;
-  const newPBtn = pBtn.cloneNode(true);
-  parent.replaceChild(newPBtn, pBtn);
-
-  newPBtn.addEventListener('click', function (e) {
-    if (newPBtn.disabled) return; // Prevent clicking greyed-out button
-    fireRipple(newPBtn, e);
-
-    newPBtn.classList.remove('pressed');
-    void newPBtn.offsetWidth;
-    newPBtn.classList.add('pressed');
-    newPBtn.addEventListener('animationend', () => newPBtn.classList.remove('pressed'), { once: true });
-
-    renderTasks();
-
-    loadTasks(function (tasks) {
-      const inProgress = tasks.filter(t => !t.status_completed);
-      const bestTask = getBestTask(inProgress, _currentPriorityMode);
-      const runnerUp = getSecondBestTask(inProgress, _currentPriorityMode, bestTask);
-      const box = document.getElementById('recommendationBox');
-      if (!box) return;
-
-      if (bestTask) renderRecBox(bestTask, runnerUp);
-      else {
-        document.getElementById('recommendationText').textContent = 'No tasks available';
-        document.getElementById('recommendationMeta').textContent = '';
-        document.getElementById('recommendationRationale').textContent = '';
-        clearRecExplanation();
-      }
-
-      if (!box.classList.contains('visible')) {
-        box.classList.add('visible');
-        requestAnimationFrame(() => box.classList.add('faded-in'));
-      }
-    });
-  });
-}
-
-function refreshUIAndRecommendation() {
-  loadTasks(tasks => {
-    renderTasks().then(() => {
-      attachPrioritizeHandler();
-
-      const inProgress = tasks.filter(t => !t.status_completed);
-      const bestTask = getBestTask(inProgress, _currentPriorityMode);
-      const runnerUp = getSecondBestTask(inProgress, _currentPriorityMode, bestTask);
-      const box = document.getElementById('recommendationBox');
-      if (!box) return;
-
-      const pBtn = document.getElementById('prioritizeBtn');
-      if (bestTask) {
-        renderRecBox(bestTask, runnerUp);
-        if (pBtn) { pBtn.disabled = false; pBtn.classList.remove('disabled'); }
-      } else {
-        document.getElementById('recommendationText').textContent = 'No tasks available';
-        document.getElementById('recommendationMeta').textContent = '';
-        document.getElementById('recommendationRationale').textContent = '';
-        clearRecExplanation();
-        box.classList.remove('visible', 'faded-in');
-        if (pBtn) { pBtn.disabled = true; pBtn.classList.add('disabled'); }
-      }
-    });
-  });
-}
 
 document.addEventListener('DOMContentLoaded', function () {
   if (window.location.pathname.includes('popup.html')) {
