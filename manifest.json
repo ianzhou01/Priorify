@@ -22,7 +22,8 @@
   "permissions": [
     "storage",
     "alarms",
-    "notifications"
+    "notifications",
+    "windows"
   ],
   
   "web_accessible_resources": [
