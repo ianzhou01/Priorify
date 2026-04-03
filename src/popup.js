@@ -335,6 +335,15 @@ document.addEventListener('DOMContentLoaded', function () {
   const taskForm = document.getElementById('taskForm');
   const cancelBtn = document.getElementById('cancelBtn');
 
+  if (taskForm && typeof flatpickr !== 'undefined' && navigator.userAgent.includes('Firefox')) {
+    const dateInput = document.getElementById('date');
+    dateInput.type = 'text';
+    flatpickr(dateInput, {
+      dateFormat: 'm/d/Y',
+      allowInput: true
+    });
+  }
+
   if (taskForm) {
     chrome.storage.local.get(['editingTask'], function (result) {
       if (result.editingTask) {
