@@ -161,11 +161,20 @@ Priorify is a Manifest V3 Chrome extension built with vanilla JavaScript and the
 
 ## Installation
 ### Official Release
-Priorify will shortly be available on the Chrome Web Store pending review.
+Priorify will shortly be available on the Chrome Web Store and Mozilla Firefox, pending review.
 
 ### Local Download
+#### Chrome
 1. Clone or download this repository.
 2. Open `chrome://extensions` in your browser.
 3. Enable **Developer mode** (top-right toggle).
 4. Click **Load unpacked** and select the project folder.
 5. Pin the Priorify icon to your toolbar and start adding tasks.
+
+#### Firefox
+1. Clone or download this repository.
+2. Inside the project directory, select all files, right-click, and compress to ZIP.
+3. In Firefox, enter "about:debugging" in the URL bar.
+4. Click "This Firefox."
+5. Click "Load Temporary Add-on."
+6. Upload the .zip file containing the project contents.
