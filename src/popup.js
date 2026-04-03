@@ -72,13 +72,22 @@ function buildTaskCard(task, isCompleted) {
   const timeLabel = { '15': '15 min', '30': '30 min', '60': '1 hr', '120': '2 hrs', '240': '4+ hrs' }[task.time] || `${task.time} min`;
 
   return getCardTemplate().then(html => {
-    const wrapper = document.createElement('div');
-    wrapper.innerHTML = html;
-    const card = wrapper.firstElementChild;
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const card = document.adoptNode(doc.body.firstElementChild);
 
     card.querySelector('.task-title').textContent = task.title;
     const stars = '★'.repeat(task.importance) + '☆'.repeat(5 - task.importance);
-    card.querySelector('.task-meta').innerHTML = `📅 ${task.date} &nbsp;|&nbsp; ⏱ ${timeLabel} &nbsp;|&nbsp; ${difficultyEmoji} ${task.difficulty} &nbsp;|&nbsp; <span class="task-stars">${stars}</span>`;
+    const meta = card.querySelector('.task-meta');
+    const sep = () => document.createTextNode('\u00A0\u00A0|\u00A0\u00A0');
+    const starsSpan = document.createElement('span');
+    starsSpan.className = 'task-stars';
+    starsSpan.textContent = stars;
+    meta.replaceChildren(
+      document.createTextNode(`📅 ${task.date}`), sep(),
+      document.createTextNode(`⏱ ${timeLabel}`), sep(),
+      document.createTextNode(`${difficultyEmoji} ${task.difficulty}`), sep(),
+      starsSpan
+    );
     card.querySelector('.mark-btn').textContent = isCompleted ? '↩ Unmark' : '✔ Mark Complete';
 
     card.querySelector('.mark-btn').addEventListener('click', function () {
@@ -631,8 +640,16 @@ function renderRecBox(best, runner) {
   const explanation = getRecExplanation(best, runner, _currentPriorityMode);
   if (explanation) {
     const panel = document.getElementById('recExplanation');
-    panel.innerHTML = `<div class="explain-header">${explanation.winner} chosen over ${explanation.runner}</div>`
-      + '<ul>' + explanation.lines.map(l => `<li>${l}</li>`).join('') + '</ul>';
+    const header = document.createElement('div');
+    header.className = 'explain-header';
+    header.textContent = `${explanation.winner} chosen over ${explanation.runner}`;
+    const ul = document.createElement('ul');
+    explanation.lines.forEach(l => {
+      const li = document.createElement('li');
+      li.textContent = l;
+      ul.appendChild(li);
+    });
+    panel.replaceChildren(header, ul);
     // Keep panel open/closed state but refresh content; reset to closed on new recommendation
     panel.classList.remove('visible');
     const btn = document.getElementById('explainBtn');

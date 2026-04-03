@@ -16,7 +16,8 @@
   },
   
   "background": {
-    "service_worker": "src/background.js"
+    "service_worker": "src/background.js",
+    "scripts": ["src/background.js"]
   },
 
   "permissions": [
@@ -25,6 +26,16 @@
     "notifications",
     "windows"
   ],
+
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "priorify@extension",
+      "data_collection_permissions": {
+        "required": ["none"],
+        "optional": []
+      }
+    }
+  },
   
   "web_accessible_resources": [
     {
