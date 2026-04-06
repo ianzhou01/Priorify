@@ -199,6 +199,24 @@ document.addEventListener('DOMContentLoaded', function () {
     settingsBtn.classList.remove('open');
   }
 
+  const durationRadios = document.getElementById('durationRadios');
+  if (durationRadios) {
+    const labels = Object.fromEntries(
+      Object.entries(TIMER_DURATIONS).map(([key, val]) => [key, `${Math.round(val / 60)} min`])
+    );
+    Object.entries(TIMER_DURATIONS).forEach(([key, val]) => {
+      const label = document.createElement('label');
+      label.className = 'radio-option';
+      const radio = document.createElement('input');
+      radio.type = 'radio';
+      radio.name = 'duration';
+      radio.value = val;
+      if (val === DEFAULT_SETTINGS.duration) radio.checked = true;
+      label.append(radio, ` ${labels[key]}`);
+      durationRadios.appendChild(label);
+    });
+  }
+
   if (settingsBtn && settingsPanel) {
     settingsBtn.addEventListener('click', function () {
       const isOpen = settingsPanel.classList.toggle('open');
@@ -445,7 +463,7 @@ function highlightStars(picker, value) {
 
 
 //  Settings 
-const DEFAULT_SETTINGS = { priority: 'balanced', duration: 1500 };
+// DEFAULT_SETTINGS and TIMER_DURATIONS are defined in config.js
 
 function loadSettings(callback) {
   chrome.storage.local.get('priorify_settings', function (result) {
@@ -467,18 +485,19 @@ function applySettingsToUI(settings) {
     if (dRadio) dRadio.checked = true;
   }
 
-  // Update start button label
+  // Update duration-dependent button labels
   const mins = Math.round(settings.duration / 60);
+  const shortMins = Math.round(TIMER_DURATIONS.short / 60);
   const sBtn = document.getElementById('startBtn');
   if (sBtn) sBtn.textContent = `▶ Start ${mins} min`;
-
-  // Update continue button label in check-in yes view
   const cBtn = document.getElementById('continueBtn');
   if (cBtn) cBtn.textContent = `Continue (${mins} min)`;
+  const tBtn = document.getElementById('tryShortBtn');
+  if (tBtn) tBtn.textContent = `Try ${shortMins} min`;
 }
 
 let _currentPriorityMode = 'balanced';
-let _currentDuration = 1500;
+let _currentDuration = DEFAULT_SETTINGS.duration;
 
 // Keep module-level cache in sync whenever settings are loaded/saved
 function _applySettingsCache(settings) {
@@ -532,7 +551,7 @@ function fireRipple(btn, e) {
 }
 
 //  Timer 
-const TIMER_SHORT = 10 * 60; // Used for "Try Shorter" option on check-in screen
+const TIMER_SHORT = TIMER_DURATIONS.short;
 let currentTaskTitle = '';
 let tickInterval = null;
 

@@ -23,15 +23,7 @@
         </label>
 
         <p class="settings-label">Default session:</p>
-        <label class="radio-option">
-          <input type="radio" name="duration" value="600"> 10 min
-        </label>
-        <label class="radio-option">
-          <input type="radio" name="duration" value="1500" checked> 25 min
-        </label>
-        <label class="radio-option">
-          <input type="radio" name="duration" value="2700"> 45 min
-        </label>
+        <div id="durationRadios"></div>
       </div>
     </div>
 
@@ -57,7 +49,7 @@
       <p id="recommendationMeta"></p>
       <p id="recommendationRationale"></p>
       <div id="recExplanation"></div>
-      <button id="startBtn">▶ Start 25 min</button>
+      <button id="startBtn"></button>
     </div>
 
     <div id="tasksContainer">
@@ -84,7 +76,7 @@
     <div id="checkInYesView">
       <p id="checkInYesHeading">Great — keep going or pick next?</p>
       <div class="checkin-buttons">
-        <button id="continueBtn">Continue (25 min)</button>
+        <button id="continueBtn"></button>
         <button id="newRecBtn">New recommendation</button>
       </div>
     </div>
@@ -92,7 +84,7 @@
     <div id="checkInNoView">
       <p id="checkInNoHeading">No problem — try a smaller step?</p>
       <div class="checkin-buttons">
-        <button id="tryShortBtn">Try 10 min</button>
+        <button id="tryShortBtn"></button>
         <button id="suggestOtherBtn">Suggest another</button>
       </div>
     </div>
@@ -112,6 +104,7 @@
       <button id="undoBtn">Undo</button>
     </div>
 
+    <script src="config.js"></script>
     <script src="scoring.js"></script>
     <script src="popup.js"></script>
   </body>
