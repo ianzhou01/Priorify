@@ -24,7 +24,8 @@
     "storage",
     "alarms",
     "notifications",
-    "windows"
+    "windows",
+    "tabs"
   ],
 
   "browser_specific_settings": {

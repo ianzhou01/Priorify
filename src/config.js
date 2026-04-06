@@ -1,9 +1,9 @@
 // Priorify configuration
 
 const TIMER_DURATIONS = {
-  short:   600,   // 10 min (seconds)
-  medium:  1500,  // 25 min (seconds)
-  long:    2700   // 45 min (seconds)
+  short:   10 * 60,
+  medium:  25 * 60,
+  long:    45 * 60
 };
 
 const DEFAULT_SETTINGS = {

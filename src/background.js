@@ -82,7 +82,70 @@ chrome.runtime.onMessage.addListener(function (msg, _sender, sendResponse) {
   if (msg.type === 'GET_STATE')   { getState(sendResponse); return true; }
 });
 
-//  Alarm fired = timer expired 
+const CHECKIN_WIN_KEY = 'priorify_checkin_win';
+
+function openOrFocusCheckinWindow(url) {
+  chrome.storage.local.get(CHECKIN_WIN_KEY, function (stored) {
+    const existing = stored[CHECKIN_WIN_KEY];
+    if (existing) {
+      if (existing.type === 'window') {
+        chrome.windows.get(existing.id, function (win) {
+          if (chrome.runtime.lastError || !win) {
+            chrome.storage.local.remove(CHECKIN_WIN_KEY);
+            createCheckinWindow(url);
+          } else {
+            chrome.windows.update(existing.id, { focused: true });
+          }
+        });
+      } else {
+        chrome.tabs.get(existing.id, function (tab) {
+          if (chrome.runtime.lastError || !tab) {
+            chrome.storage.local.remove(CHECKIN_WIN_KEY);
+            createCheckinWindow(url);
+          } else {
+            chrome.tabs.update(existing.id, { active: true });
+          }
+        });
+      }
+    } else {
+      createCheckinWindow(url);
+    }
+  });
+}
+
+function createCheckinWindow(url) {
+  const isFirefox = navigator.userAgent.includes('Firefox');
+  if (isFirefox) {
+    chrome.tabs.create({ url }, function (tab) {
+      chrome.storage.local.set({ [CHECKIN_WIN_KEY]: { type: 'tab', id: tab.id } });
+    });
+  } else {
+    chrome.windows.create({ url, type: 'popup', width: 400, height: 600, focused: true }, function (win) {
+      chrome.storage.local.set({ [CHECKIN_WIN_KEY]: { type: 'window', id: win.id } });
+    });
+  }
+}
+
+// Clean up stored ID when the window/tab is closed
+chrome.windows.onRemoved.addListener(function (windowId) {
+  chrome.storage.local.get(CHECKIN_WIN_KEY, function (result) {
+    const existing = result[CHECKIN_WIN_KEY];
+    if (existing && existing.type === 'window' && existing.id === windowId) {
+      chrome.storage.local.remove(CHECKIN_WIN_KEY);
+    }
+  });
+});
+
+chrome.tabs.onRemoved.addListener(function (tabId) {
+  chrome.storage.local.get(CHECKIN_WIN_KEY, function (result) {
+    const existing = result[CHECKIN_WIN_KEY];
+    if (existing && existing.type === 'tab' && existing.id === tabId) {
+      chrome.storage.local.remove(CHECKIN_WIN_KEY);
+    }
+  });
+});
+
+//  Alarm fired = timer expired
 chrome.alarms.onAlarm.addListener(function (alarm) {
   if (alarm.name !== ALARM_NAME) return;
   chrome.storage.local.get('priorify_timer', function (result) {
@@ -94,13 +157,9 @@ chrome.alarms.onAlarm.addListener(function (alarm) {
         title: 'Time\'s up!',
         message: 'Your Priorify session is complete. Nice work!'
       });
-      const url = chrome.runtime.getURL('src/popup.html');
-      const isFirefox = navigator.userAgent.includes('Firefox');
-      if (isFirefox) {
-        chrome.tabs.create({ url });
-      } else {
-        chrome.windows.create({ url, type: 'popup', width: 400, height: 600, focused: true });
-      }
+      const base = chrome.runtime.getURL('src/popup.html');
+      const url = base + '?checkin=' + encodeURIComponent(taskName);
+      openOrFocusCheckinWindow(url);
     });
   });
 });
