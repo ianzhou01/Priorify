@@ -1,8 +1,3 @@
-chrome.runtime.onInstalled.addListener(function () {
-  chrome.storage.local.set({ currentOrganization: 0 });
-  chrome.storage.local.set({ algorithmChoice: Math.floor(Math.random() * 5) + 1 });
-});
-
 //  Timer state 
 // Persisted in chrome.storage.local so it survives service worker sleep:
 //   priorify_timer: { taskName, endsAt, pausedAt, secondsLeft, running }
@@ -153,7 +148,7 @@ chrome.alarms.onAlarm.addListener(function (alarm) {
     chrome.storage.local.set({ priorify_timer: { running: false, expired: true, taskName } }, function () {
       chrome.notifications.create('priorify_done', {
         type: 'basic',
-        iconUrl: '../icons/icon48.png',
+        iconUrl: chrome.runtime.getURL('icons/icon48.png'),
         title: 'Time\'s up!',
         message: 'Your Priorify session is complete. Nice work!'
       });
