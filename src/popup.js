@@ -202,7 +202,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const durationRadios = document.getElementById('durationRadios');
   if (durationRadios) {
     const labels = Object.fromEntries(
-      Object.entries(TIMER_DURATIONS).map(([key, val]) => [key, `${Math.round(val / 60)} min`])
+      Object.entries(TIMER_DURATIONS).map(([key, val]) => [key, formatDuration(val)])
     );
     Object.entries(TIMER_DURATIONS).forEach(([key, val]) => {
       const label = document.createElement('label');
@@ -486,14 +486,12 @@ function applySettingsToUI(settings) {
   }
 
   // Update duration-dependent button labels
-  const mins = Math.round(settings.duration / 60);
-  const shortMins = Math.round(TIMER_DURATIONS.short / 60);
   const sBtn = document.getElementById('startBtn');
-  if (sBtn) sBtn.textContent = `▶ Start ${mins} min`;
+  if (sBtn) sBtn.textContent = `▶ Start ${formatDuration(settings.duration)}`;
   const cBtn = document.getElementById('continueBtn');
-  if (cBtn) cBtn.textContent = `Continue (${mins} min)`;
+  if (cBtn) cBtn.textContent = `Continue (${formatDuration(settings.duration)})`;
   const tBtn = document.getElementById('tryShortBtn');
-  if (tBtn) tBtn.textContent = `Try ${shortMins} min`;
+  if (tBtn) tBtn.textContent = `Try ${formatDuration(TIMER_DURATIONS.short)}`;
 }
 
 let _currentPriorityMode = 'balanced';
@@ -550,7 +548,11 @@ function fireRipple(btn, e) {
   ripple.addEventListener('animationend', () => ripple.remove());
 }
 
-//  Timer 
+function formatDuration(seconds) {
+  return seconds < 60 ? `${seconds}s` : `${Math.round(seconds / 60)} min`;
+}
+
+//  Timer
 const TIMER_SHORT = TIMER_DURATIONS.short;
 let currentTaskTitle = '';
 let tickInterval = null;
