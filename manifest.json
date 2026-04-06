@@ -17,7 +17,7 @@
   
   "background": {
     "service_worker": "src/background.js",
-    "scripts": ["src/background.js"]
+    "scripts": ["src/config.js", "src/background.js"]
   },
 
   "permissions": [
