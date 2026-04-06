@@ -406,7 +406,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
   if (cancelBtn) {
     cancelBtn.addEventListener('click', function () {
-      window.location.href = 'popup.html';
+      chrome.storage.local.remove('editingTask', function () {
+        window.location.href = 'popup.html';
+      });
     });
   }
 
