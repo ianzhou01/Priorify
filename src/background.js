@@ -1,5 +1,3 @@
-importScripts('config.js');
-
 chrome.runtime.onInstalled.addListener(function () {
   chrome.storage.local.set({ currentOrganization: 0 });
   chrome.storage.local.set({ algorithmChoice: Math.floor(Math.random() * 5) + 1 });
@@ -87,23 +85,22 @@ chrome.runtime.onMessage.addListener(function (msg, _sender, sendResponse) {
 //  Alarm fired = timer expired 
 chrome.alarms.onAlarm.addListener(function (alarm) {
   if (alarm.name !== ALARM_NAME) return;
-  chrome.storage.local.set({ priorify_timer: { running: false, expired: true } });
-  chrome.notifications.create('priorify_done', {
-    type: 'basic',
-    iconUrl: '../icons/icon48.png',
-    title: 'Time\'s up!',
-    message: 'Your Priorify session is complete. Nice work!'
-  });
-  const isFirefox = navigator.userAgent.includes('Firefox');
-  if (isFirefox) {
-    chrome.tabs.create({ url: chrome.runtime.getURL('src/popup.html') });
-  } else {
-    chrome.windows.create({
-      url: chrome.runtime.getURL('src/popup.html'),
-      type: 'popup',
-      width: 400,
-      height: 600,
-      focused: true
+  chrome.storage.local.get('priorify_timer', function (result) {
+    const taskName = (result.priorify_timer || {}).taskName || '';
+    chrome.storage.local.set({ priorify_timer: { running: false, expired: true, taskName } }, function () {
+      chrome.notifications.create('priorify_done', {
+        type: 'basic',
+        iconUrl: '../icons/icon48.png',
+        title: 'Time\'s up!',
+        message: 'Your Priorify session is complete. Nice work!'
+      });
+      const url = chrome.runtime.getURL('src/popup.html');
+      const isFirefox = navigator.userAgent.includes('Firefox');
+      if (isFirefox) {
+        chrome.tabs.create({ url });
+      } else {
+        chrome.windows.create({ url, type: 'popup', width: 400, height: 600, focused: true });
+      }
     });
-  }
+  });
 });

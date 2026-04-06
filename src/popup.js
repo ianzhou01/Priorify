@@ -170,21 +170,26 @@ document.addEventListener('DOMContentLoaded', function () {
   if (window.location.pathname.includes('popup.html')) {
     loadSettings(_applySettingsCache);
 
-    // Sync timer state from background before rendering anything else
-    chrome.runtime.sendMessage({ type: 'GET_STATE' }, function (state) {
-      if (state && state.running) {
-        renderTimerView(state.taskName, state.secondsLeft, state.paused);
-        if (!state.paused) startTick();
-      } else {
-        // Check if the timer expired while popup was closed
-        chrome.storage.local.get('priorify_timer', function (result) {
-          if (result.priorify_timer && result.priorify_timer.expired) {
-            chrome.storage.local.set({ priorify_timer: { running: false } });
-            switchView('checkInView');
+    // Read storage first so the expired path never depends on a GET_STATE round-trip
+    chrome.storage.local.get('priorify_timer', function (result) {
+      const t = result.priorify_timer;
+      if (t && t.expired) {
+        // Timer just expired — show check-in immediately
+        currentTaskTitle = t.taskName || '';
+        chrome.storage.local.set({ priorify_timer: { running: false } });
+        switchView('checkInView');
+      } else if (t && t.running) {
+        // Timer actively running — ask background for accurate remaining seconds
+        chrome.runtime.sendMessage({ type: 'GET_STATE' }, function (state) {
+          if (state && state.running) {
+            renderTimerView(state.taskName, state.secondsLeft, state.paused);
+            if (!state.paused) startTick();
           } else {
             renderTasks();
           }
         });
+      } else {
+        renderTasks();
       }
     });
   }
