@@ -391,9 +391,22 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     });
 
+    const titleInput = document.getElementById('title');
+    const titleCounter = document.getElementById('titleCounter');
+    if (titleInput && titleCounter) {
+      const updateCounter = () => {
+        const len = titleInput.value.length;
+        titleCounter.textContent = `${len}/60`;
+        titleCounter.classList.toggle('char-counter--near', len >= 48);
+        titleCounter.classList.toggle('char-counter--full', len >= 60);
+      };
+      titleInput.addEventListener('input', updateCounter);
+      updateCounter();
+    }
+
     taskForm.addEventListener('submit', function (e) {
       e.preventDefault();
-      const newTitle = document.getElementById('title').value;
+      const newTitle = document.getElementById('title').value.trim();
       const newDate = document.getElementById('date').value;
       const newTime = document.getElementById('time').value;
       const newDifficulty = document.getElementById('difficulty').value;

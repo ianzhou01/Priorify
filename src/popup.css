@@ -606,14 +606,14 @@ button {
 #tasksContainer {
   display: grid;
   grid-template-rows: 1fr 1fr;
+  gap: 6px;
   margin-top: 12px;
   flex: 1;
   min-height: 0;
   width: 100%;
   overflow-y: auto;
   border-radius: 12px;
-  background: linear-gradient(180deg, #6366f1 0%, #4f46e5 50%, #3730a3 100%);
-  box-shadow: 0 4px 16px rgba(79, 70, 229, 0.25);
+  background: transparent;
 }
 
 #tasksContainer::-webkit-scrollbar {
@@ -629,9 +629,18 @@ button {
   border-radius: 4px;
 }
 
-#inProgress,
+#inProgress {
+  text-align: center;
+  background: linear-gradient(180deg, #6366f1 0%, #4f46e5 50%, #3730a3 100%);
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(79, 70, 229, 0.25);
+}
+
 #completed {
   text-align: center;
+  background: linear-gradient(180deg, #059669 0%, #047857 50%, #065f46 100%);
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(5, 150, 105, 0.25);
 }
 
 #inProgress h2,
@@ -649,6 +658,12 @@ button {
   font-size: 12px;
   color: rgba(255, 255, 255, 0.45);
   margin: 4px 0;
+}
+
+/* Completed task cards — muted to signal done state */
+#completed .task-title {
+  text-decoration: line-through;
+  opacity: 0.7;
 }
 
 /* Task cards */
@@ -718,6 +733,24 @@ button {
   box-shadow: 0 4px 16px rgba(79, 70, 229, 0.25);
   flex: 1;
   min-height: 0;
+}
+
+.char-counter {
+  float: right;
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  color: rgba(255, 255, 255, 0.45);
+  transition: color 0.15s ease;
+}
+
+.char-counter--near {
+  color: rgba(251, 191, 36, 0.85);
+}
+
+.char-counter--full {
+  color: rgba(239, 68, 68, 0.9);
 }
 
 #taskForm label {
